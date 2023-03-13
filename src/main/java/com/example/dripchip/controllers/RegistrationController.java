@@ -4,6 +4,7 @@ package com.example.dripchip.controllers;
 import com.example.dripchip.dto.RegistrationDTO.Response;
 import com.example.dripchip.dto.RegistrationDTO.Request;
 import com.example.dripchip.service.impl.RegistrationServiceImpl;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

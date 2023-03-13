@@ -6,32 +6,14 @@ import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 public class RegistrationDTO {
-    private interface Id {
-        @Positive Integer getId();
-    }
 
-    private interface firstName {
-        @NotBlank String getFirstName();
-    }
-
-    private interface lastName {
-        @NotBlank String getLastName();
-    }
-
-    private interface email {
-        @NotBlank @Email String getEmail();
-    }
-
-    private interface password {
-        @NotBlank String getPassword();
-    }
 
     public enum Request {
         ;
 
         @Getter
         @Setter
-        public static class Registration implements firstName, lastName, email, password {
+        public static class Registration implements AccountDTO.FirstName, AccountDTO.LastName, AccountDTO.Email, AccountDTO.Password {
 
             String firstName;
             String lastName;
@@ -45,7 +27,7 @@ public class RegistrationDTO {
 
         @Value
         @Builder
-        public static class Registration implements Id, firstName, lastName, email {
+        public static class Registration implements AccountDTO.Id, AccountDTO.FirstName, AccountDTO.LastName, AccountDTO.Email {
             Integer id;
             String firstName;
             String lastName;
