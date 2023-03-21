@@ -1,11 +1,10 @@
 package com.example.dripchip.dto;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Getter;
+import lombok.Setter;
 
 public class AccountDTO {
 
@@ -30,16 +29,42 @@ public class AccountDTO {
     }
 
 
+    public enum Request {
+        ;
+
+        @Getter
+        public static class UpdateAccount implements FirstName, LastName, Email, Password {
+            String firstName;
+            String lastName;
+            String email;
+            String password;
+        }
+    }
+
     public enum Response {
         ;
 
-        @Value
+        @Getter
+        @Setter
         @Builder
-        public static class Information implements Id, FirstName, LastName, Email{
+        public static class Information implements Id, FirstName, LastName, Email {
             Integer id;
             String firstName;
             String lastName;
             String email;
+        }
+
+        @Getter
+        @Setter
+        @Builder
+        public static class UpdateAccount implements Id, FirstName, LastName, Email {
+            private Integer id;
+            private String firstName;
+            private String lastName;
+            private String email;
+        }
+
+        public static class Empty {
         }
     }
 

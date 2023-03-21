@@ -14,13 +14,17 @@ public class Animal {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @OneToMany(mappedBy = "animal", fetch=FetchType.LAZY)
-    @ToString.Exclude
-    private List<AnimalsTypes> animalsTypes;
+    @ManyToOne
+    @JoinColumn(name = "animal_id")
+    private AnimalsType animalsType;
 
-    @OneToMany(mappedBy = "animal", fetch=FetchType.LAZY)
+    @OneToMany(mappedBy = "animal", fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<Location> locations;
+
+    @ManyToOne
+    @JoinColumn(name = "account")
+    private Account account;
 
     private float weight;
 

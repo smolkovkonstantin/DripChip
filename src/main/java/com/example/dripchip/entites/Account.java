@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 public class Account implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_account", nullable = false)
     private Integer id;
 
@@ -34,6 +34,9 @@ public class Account implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @OneToMany(mappedBy = "account")
+    private List<Animal> animals;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

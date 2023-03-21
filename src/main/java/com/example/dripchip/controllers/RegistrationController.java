@@ -25,7 +25,7 @@ public class RegistrationController {
 
     @PostMapping
     public ResponseEntity<Response.Registration> registrationAccount(
-            @RequestBody Request.Registration registrationDTO) {
+            @RequestBody @Valid Request.Registration registrationDTO) {
 
         return accountServices.register(registrationDTO);
     }

@@ -4,9 +4,14 @@ package com.example.dripchip.entites;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-public class AnimalsTypes {
+public class AnimalsType {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -14,7 +19,7 @@ public class AnimalsTypes {
 
     private String type;
 
-    @ManyToOne
-    @JoinColumn(name = "animal_id")
-    private Animal animal;
+    @OneToMany(mappedBy = "animalsType", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<Animal> animals;
 }

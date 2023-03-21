@@ -1,0 +1,47 @@
+package com.example.dripchip.dto;
+
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
+public class LocationDTO {
+
+    protected interface Id {
+        Long getId();
+    }
+
+    private interface Latitude {
+        Double getLatitude();
+    }
+
+    private interface Longitude {
+        Double getLongitude();
+    }
+
+    public enum Request {
+        ;
+        @Getter
+        @Setter
+        public static class Location implements Longitude, Latitude {
+            private Double longitude;
+            private Double latitude;
+        }
+    }
+
+    public enum Response {
+        ;
+
+        @Getter
+        @Setter
+        @Builder
+        public static class Location implements Id, Longitude, Latitude {
+            private Long id;
+            private Double longitude;
+            private Double latitude;
+        }
+
+        public static class Empty {
+        }
+    }
+
+}
