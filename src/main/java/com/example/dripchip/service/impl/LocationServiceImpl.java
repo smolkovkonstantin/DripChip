@@ -18,9 +18,6 @@ public class LocationServiceImpl implements LocationService {
     private final LocationDAO locationDAO;
 
     public ResponseEntity<LocationDTO.Response.Location> addLocation(LocationDTO.Request.Location location) {
-        if (!validLocation(location.getLatitude(), location.getLongitude())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
 
         var locationByLatitude = locationDAO.findByLatitude(location.getLatitude());
 
@@ -62,9 +59,6 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public ResponseEntity<LocationDTO.Response.Location> updateById(Long pointId, LocationDTO.Request.Location location) {
-        if (!validLocation(location.getLatitude(), location.getLongitude())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
 
         var locationById = locationDAO.findById(pointId);
 
@@ -97,10 +91,6 @@ public class LocationServiceImpl implements LocationService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
-        if (opLocation.get().getAnimal() != null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-
         locationDAO.deleteById(pointId);
 
         return ResponseEntity.ok().body(new LocationDTO.Response.Empty());
@@ -111,14 +101,4 @@ public class LocationServiceImpl implements LocationService {
                 locationByLatitude.get().equals(locationByLongitude.get());
     }
 
-
-    private boolean validLocation(Double latitude, Double longitude) {
-        if (latitude == null || latitude < -90 || latitude > 90) {
-            return false;
-        }
-        if (longitude == null || longitude < -180 || longitude > 180) {
-            return false;
-        }
-        return true;
-    }
 }

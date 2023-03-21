@@ -1,7 +1,6 @@
 package com.example.dripchip.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,19 +12,19 @@ public class AccountDTO {
     }
 
     protected interface FirstName {
-        @NotBlank String getFirstName();
+        @NotBlank @NotNull String getFirstName();
     }
 
     protected interface LastName {
-        @NotBlank String getLastName();
+        @NotBlank @NotNull String getLastName();
     }
 
     protected interface Email {
-        @NotBlank @jakarta.validation.constraints.Email String getEmail();
+        @NotBlank @NotNull @jakarta.validation.constraints.Email String getEmail();
     }
 
     protected interface Password {
-        @NotBlank String getPassword();
+        @NotBlank @NotNull String getPassword();
     }
 
 

@@ -24,9 +24,6 @@ public class AnimalsTypesServiceImpl implements AnimalsTypesService {
 
     @Override
     public ResponseEntity<AnimalsTypesDTO.Response.AnimalsTypes> addAnimalsTypes(AnimalsTypesDTO.Request.AnimalsTypes animalsTypes) {
-        if (StringUtil.isWhitespace(animalsTypes.getType())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
 
         Optional<AnimalsType> opAnimalsTypes = animalsTypesDAO.findByType(animalsTypes.getType());
 
@@ -51,9 +48,6 @@ public class AnimalsTypesServiceImpl implements AnimalsTypesService {
 
     @Override
     public ResponseEntity<AnimalsTypesDTO.Response.AnimalsTypes> getAnimalsTypesById(Long typeId) {
-        if (typeId == null || typeId <= 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
 
         Optional<AnimalsType> opAnimalsTypes = animalsTypesDAO.findById(typeId);
 
@@ -66,9 +60,6 @@ public class AnimalsTypesServiceImpl implements AnimalsTypesService {
 
     @Override
     public ResponseEntity<AnimalsTypesDTO.Response.AnimalsTypes> putAnimalsTypesById(Long typeId, AnimalsTypesDTO.Request.AnimalsTypes animalsTypes) {
-        if (StringUtil.isWhitespace(animalsTypes.getType()) || typeId == null || typeId <= 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
 
         Optional<AnimalsType> opAnimalsTypesById = animalsTypesDAO.findById(typeId);
 
@@ -97,10 +88,6 @@ public class AnimalsTypesServiceImpl implements AnimalsTypesService {
     @Override
     public ResponseEntity<AnimalsTypesDTO.Response.Empty> deleteAnimalsTypesById(Long typeId) {
         Optional<Animal> opAnimal = animalDAO.findByAnimalsTypeId(typeId);
-
-        if (opAnimal.isPresent() || typeId == null || typeId <= 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
 
         Optional<AnimalsType> opAnimalsTypes = animalsTypesDAO.findById(typeId);
 

@@ -1,5 +1,8 @@
 package com.example.dripchip.dto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,11 +14,11 @@ public class LocationDTO {
     }
 
     private interface Latitude {
-        Double getLatitude();
+        @Max(90) @Min(-90) @NotNull Double getLatitude();
     }
 
     private interface Longitude {
-        Double getLongitude();
+        @Max(180) @Min(-180) @NotNull Double getLongitude();
     }
 
     public enum Request {

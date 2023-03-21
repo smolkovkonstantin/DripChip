@@ -18,7 +18,6 @@ public class RegistrationDTO {
 
             private String firstName;
             private String lastName;
-            @Email @NotNull @NotBlank
             private String email;
             private String password;
         }
