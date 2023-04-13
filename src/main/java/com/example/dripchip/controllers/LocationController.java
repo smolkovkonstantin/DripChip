@@ -1,6 +1,8 @@
 package com.example.dripchip.controllers;
 
 import com.example.dripchip.dto.LocationDTO;
+import com.example.dripchip.exception.ConflictException;
+import com.example.dripchip.exception.NotFoundException;
 import com.example.dripchip.service.LocationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -13,34 +15,33 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/locations")
-@Validated
 public class LocationController {
 
     private final LocationService locationService;
 
     @PostMapping
-    public ResponseEntity<LocationDTO.Response.Location> addLocation(
-            @RequestBody @Valid LocationDTO.Request.Location location) {
-        return locationService.addLocation(location);
+    public ResponseEntity<?> addLocation(
+            @RequestBody LocationDTO.Request.Location location) throws ConflictException {
+        return locationService.addLocation(location).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{pointId}")
-    public ResponseEntity<LocationDTO.Response.Location> findLocationById(
-            @PathVariable @Min(1) @NotNull Long pointId) {
-        return locationService.findLocationById(pointId);
+    public ResponseEntity<?> findLocationById(
+            @PathVariable Long pointId) {
+        return locationService.findLocationById(pointId).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
 
     @PutMapping("/{pointId}")
-    public ResponseEntity<LocationDTO.Response.Location> updateById(
-            @PathVariable @Min(1) @NotNull Long pointId,
-            @RequestBody LocationDTO.Request.Location location) {
-        return locationService.updateById(pointId, location);
+    public ResponseEntity<?> updateById(
+            @PathVariable Long pointId,
+            @RequestBody LocationDTO.Request.Location location) throws ConflictException {
+        return locationService.updateById(pointId, location).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{pointId}")
-    public ResponseEntity<LocationDTO.Response.Empty> deleteLocationById(@PathVariable @Min(1) @NotNull Long pointId) {
-        return locationService.deleteById(pointId);
+    public void deleteLocationById(@PathVariable Long pointId) throws NotFoundException {
+        locationService.deleteById(pointId);
     }
 
 }

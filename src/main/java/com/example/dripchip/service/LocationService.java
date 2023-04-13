@@ -1,14 +1,21 @@
 package com.example.dripchip.service;
 
 import com.example.dripchip.dto.LocationDTO;
-import org.springframework.http.ResponseEntity;
+import com.example.dripchip.entites.LocationPoint;
+import com.example.dripchip.exception.ConflictException;
+import com.example.dripchip.exception.NotFoundException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
+import java.util.Optional;
 
 public interface LocationService {
-    ResponseEntity<LocationDTO.Response.Location> addLocation(LocationDTO.Request.Location location);
+    Optional<LocationDTO.Response.Location> addLocation(@Valid LocationDTO.Request.Location location) throws ConflictException;
 
-    ResponseEntity<LocationDTO.Response.Location> findLocationById(Long pointId);
+    Optional<LocationPoint> findLocationById(@Min(1) @NotNull  Long pointId);
 
-    ResponseEntity<LocationDTO.Response.Location> updateById(Long pointId, LocationDTO.Request.Location location);
+    Optional<LocationDTO.Response.Location> updateById(@Min(1) @NotNull  Long pointId, @Valid LocationDTO.Request.Location location) throws ConflictException;
 
-    ResponseEntity<LocationDTO.Response.Empty> deleteById(Long pointId);
+    void deleteById(@Min(1) @NotNull  Long pointId) throws NotFoundException;
 }

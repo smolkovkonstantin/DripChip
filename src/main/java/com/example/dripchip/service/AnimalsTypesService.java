@@ -1,14 +1,25 @@
 package com.example.dripchip.service;
 
 import com.example.dripchip.dto.AnimalsTypesDTO;
-import org.springframework.http.ResponseEntity;
+import com.example.dripchip.entites.AnimalType;
+import com.example.dripchip.exception.BadRequestException;
+import com.example.dripchip.exception.ConflictException;
+import com.example.dripchip.exception.NotFoundException;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
+import java.util.Optional;
 
 public interface AnimalsTypesService {
-    ResponseEntity<AnimalsTypesDTO.Response.AnimalsTypes> addAnimalsTypes(AnimalsTypesDTO.Request.AnimalsTypes animalsTypes);
+    AnimalsTypesDTO.Response.AnimalsTypes addAnimalsTypes(AnimalsTypesDTO.Request.AnimalsTypes animalsTypes) throws ConflictException;
 
-    ResponseEntity<AnimalsTypesDTO.Response.AnimalsTypes> getAnimalsTypesById(Long typeId);
+    AnimalsTypesDTO.Response.AnimalsTypes getAnimalsTypesById(@NotNull @Min(1) Long typeId);
 
-    ResponseEntity<AnimalsTypesDTO.Response.AnimalsTypes> putAnimalsTypesById(Long typeId, AnimalsTypesDTO.Request.AnimalsTypes animalsTypes);
+    AnimalsTypesDTO.Response.AnimalsTypes putAnimalsTypesById(Long typeId, AnimalsTypesDTO.Request.AnimalsTypes animalsTypes) throws ConflictException;
 
-    ResponseEntity<AnimalsTypesDTO.Response.Empty> deleteAnimalsTypesById(Long typeId);
+    void deleteAnimalsTypesById(@Min(1) @NotNull  Long typeId) throws BadRequestException, NotFoundException;
+
+    boolean isNotExists(Long animalTypeId);
+
+    AnimalType getEntityAnimalsTypesById(Long typeId);
 }

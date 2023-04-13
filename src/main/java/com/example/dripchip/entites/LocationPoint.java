@@ -11,19 +11,15 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Location {
+public class LocationPoint {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
     private Double latitude;
 
     private Double longitude;
-
-    @ManyToOne
-    @JoinColumn(name = "animal_id")
-    private Animal animal;
 
     @OneToMany(mappedBy = "locationPoint", fetch=FetchType.LAZY)
     @ToString.Exclude

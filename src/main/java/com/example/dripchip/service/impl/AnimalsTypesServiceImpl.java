@@ -2,101 +2,112 @@ package com.example.dripchip.service.impl;
 
 import com.example.dripchip.dto.AnimalsTypesDTO;
 import com.example.dripchip.entites.Animal;
-import com.example.dripchip.entites.AnimalsType;
+import com.example.dripchip.entites.AnimalType;
+import com.example.dripchip.exception.BadRequestException;
+import com.example.dripchip.exception.ConflictException;
+import com.example.dripchip.exception.NotFoundException;
 import com.example.dripchip.repositories.AnimalDAO;
 import com.example.dripchip.repositories.AnimalsTypesDAO;
 import com.example.dripchip.service.AnimalsTypesService;
-import com.example.dripchip.utils.StringUtil;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.Optional;
 
 @Service
+@Validated
 @RequiredArgsConstructor
 public class AnimalsTypesServiceImpl implements AnimalsTypesService {
 
     private final AnimalsTypesDAO animalsTypesDAO;
 
-    private final AnimalDAO animalDAO;
+    private final AnimalDAO animalsDAO;
 
     @Override
-    public ResponseEntity<AnimalsTypesDTO.Response.AnimalsTypes> addAnimalsTypes(AnimalsTypesDTO.Request.AnimalsTypes animalsTypes) {
+    public AnimalsTypesDTO.Response.AnimalsTypes addAnimalsTypes(AnimalsTypesDTO.Request.AnimalsTypes animalsTypes) throws ConflictException {
 
-        Optional<AnimalsType> opAnimalsTypes = animalsTypesDAO.findByType(animalsTypes.getType());
+        Optional<AnimalType> opAnimalsTypes = animalsTypesDAO.findByType(animalsTypes.getType());
 
         if (opAnimalsTypes.isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            throw new ConflictException("Animal type with this type already exists");
         }
 
-        AnimalsType newAnimalsTypes = AnimalsType.builder()
+        AnimalType newAnimalsTypes = AnimalType.builder()
                 .type(animalsTypes.getType())
                 .build();
 
         animalsTypesDAO.save(newAnimalsTypes);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                AnimalsTypesDTO.Response.AnimalsTypes
-                        .builder()
-                        .id(newAnimalsTypes.getId())
-                        .type(animalsTypes.getType())
-                        .build()
-        );
+        return AnimalsTypesDTO.Response.AnimalsTypes
+                .builder()
+                .id(newAnimalsTypes.getId())
+                .type(animalsTypes.getType())
+                .build();
     }
 
     @Override
-    public ResponseEntity<AnimalsTypesDTO.Response.AnimalsTypes> getAnimalsTypesById(Long typeId) {
+    public AnimalsTypesDTO.Response.AnimalsTypes getAnimalsTypesById(@NotNull @Min(1) Long typeId) {
 
-        Optional<AnimalsType> opAnimalsTypes = animalsTypesDAO.findById(typeId);
+        Optional<AnimalType> opAnimalsTypes = animalsTypesDAO.findById(typeId);
 
-        return opAnimalsTypes.map(location -> ResponseEntity.ok().body(AnimalsTypesDTO.Response.AnimalsTypes
+        return opAnimalsTypes.map(location -> AnimalsTypesDTO.Response.AnimalsTypes
                 .builder()
                 .id(location.getId())
                 .type(opAnimalsTypes.get().getType())
-                .build())).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+                .build()).orElse(null);
     }
 
     @Override
-    public ResponseEntity<AnimalsTypesDTO.Response.AnimalsTypes> putAnimalsTypesById(Long typeId, AnimalsTypesDTO.Request.AnimalsTypes animalsTypes) {
+    public AnimalsTypesDTO.Response.AnimalsTypes putAnimalsTypesById(Long typeId, AnimalsTypesDTO.Request.AnimalsTypes animalsTypes) throws ConflictException {
 
-        Optional<AnimalsType> opAnimalsTypesById = animalsTypesDAO.findById(typeId);
-
+        Optional<AnimalType> opAnimalsTypesById = animalsTypesDAO.findById(typeId);
 
         if (opAnimalsTypesById.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return null;
         }
 
-        Optional<AnimalsType> opAnimalsTypesByType = animalsTypesDAO.findByType(animalsTypes.getType());
+        Optional<AnimalType> opAnimalsTypesByType = animalsTypesDAO.findByType(animalsTypes.getType());
 
         if (opAnimalsTypesByType.isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            throw new ConflictException("This animals type has already exists");
         }
 
         animalsTypesDAO.updateTypeById(animalsTypes.getType(), typeId);
 
-        return ResponseEntity.ok().body(
-                AnimalsTypesDTO.Response.AnimalsTypes
+        return AnimalsTypesDTO.Response.AnimalsTypes
                         .builder()
                         .id(typeId)
                         .type(animalsTypes.getType())
-                        .build()
-        );
+                        .build();
     }
 
     @Override
-    public ResponseEntity<AnimalsTypesDTO.Response.Empty> deleteAnimalsTypesById(Long typeId) {
-        Optional<Animal> opAnimal = animalDAO.findByAnimalsTypeId(typeId);
+    public void deleteAnimalsTypesById(@Min(1) @NotNull Long typeId) throws BadRequestException, NotFoundException {
+        Optional<Animal> opAnimal = animalsDAO.findByAnimalTypesId(typeId);
 
-        Optional<AnimalsType> opAnimalsTypes = animalsTypesDAO.findById(typeId);
+        if (opAnimal.isPresent()) {
+            throw new BadRequestException("Animal with this type of animal exists");
+        }
+
+        Optional<AnimalType> opAnimalsTypes = animalsTypesDAO.findById(typeId);
 
         if (opAnimalsTypes.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            throw new NotFoundException("Animal type not found");
         }
 
         animalsTypesDAO.deleteById(typeId);
+    }
 
-        return ResponseEntity.ok().body(new AnimalsTypesDTO.Response.Empty());
+    @Override
+    public boolean isNotExists(Long animalTypeId) {
+        return getAnimalsTypesById(animalTypeId) == null;
+    }
+
+    @Override
+    public AnimalType getEntityAnimalsTypesById(Long typeId) {
+        return animalsTypesDAO.findById(typeId).get();
     }
 }

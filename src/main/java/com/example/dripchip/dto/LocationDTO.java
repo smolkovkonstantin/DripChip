@@ -43,6 +43,7 @@ public class LocationDTO {
             private Double latitude;
         }
 
+        @Builder
         public static class Empty {
         }
     }

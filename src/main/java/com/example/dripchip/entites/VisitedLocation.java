@@ -2,23 +2,28 @@ package com.example.dripchip.entites;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.Hibernate;
 
 import java.util.Date;
-import java.util.Objects;
+import java.util.List;
 
 @Entity
 @Data
+@Builder
 @ToString
+@AllArgsConstructor
+@NoArgsConstructor
 public class VisitedLocation {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
+
+    @ManyToMany
+    private List<Animal> animal;
 
     private Date dateTimeOfVisitLocationPoint;
 
     @ManyToOne
     @JoinColumn(name = "location_point_id")
-    private Location locationPoint;
+    private LocationPoint locationPoint;
 }

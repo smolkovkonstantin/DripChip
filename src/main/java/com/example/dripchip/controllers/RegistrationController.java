@@ -3,7 +3,8 @@ package com.example.dripchip.controllers;
 
 import com.example.dripchip.dto.RegistrationDTO.Response;
 import com.example.dripchip.dto.RegistrationDTO.Request;
-import com.example.dripchip.service.impl.RegistrationServiceImpl;
+import com.example.dripchip.exception.ConflictException;
+import com.example.dripchip.service.AccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/registration")
 public class RegistrationController {
 
-    private final RegistrationServiceImpl accountServices;
+    private final AccountService accountService;
 
     @PostMapping
-    public ResponseEntity<Response.Registration> registrationAccount(
-            @RequestBody @Valid Request.Registration registrationDTO) {
-
-        return accountServices.register(registrationDTO);
+    public ResponseEntity<?> registrationAccount(
+            @RequestBody Request.Registration registrationDTO) throws ConflictException {
+        return ResponseEntity.of(accountService.register(registrationDTO));
     }
 
 }
