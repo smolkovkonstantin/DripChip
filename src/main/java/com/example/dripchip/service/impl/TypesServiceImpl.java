@@ -1,14 +1,13 @@
 package com.example.dripchip.service.impl;
 
 import com.example.dripchip.dto.AnimalsTypesDTO;
-import com.example.dripchip.entites.Animal;
 import com.example.dripchip.entites.AnimalType;
 import com.example.dripchip.exception.BadRequestException;
 import com.example.dripchip.exception.ConflictException;
 import com.example.dripchip.exception.NotFoundException;
-import com.example.dripchip.repositories.AnimalDAO;
-import com.example.dripchip.repositories.AnimalsTypesDAO;
-import com.example.dripchip.service.AnimalsTypesService;
+import com.example.dripchip.repositorie.AnimalsTypesDAO;
+import com.example.dripchip.service.AnimalService;
+import com.example.dripchip.service.TypesService;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +19,9 @@ import java.util.Optional;
 @Service
 @Validated
 @RequiredArgsConstructor
-public class AnimalsTypesServiceImpl implements AnimalsTypesService {
+public class TypesServiceImpl implements TypesService {
 
     private final AnimalsTypesDAO animalsTypesDAO;
-
-    private final AnimalDAO animalsDAO;
 
     @Override
     public AnimalsTypesDTO.Response.AnimalsTypes addAnimalsTypes(AnimalsTypesDTO.Request.AnimalsTypes animalsTypes) throws ConflictException {
@@ -78,36 +75,27 @@ public class AnimalsTypesServiceImpl implements AnimalsTypesService {
         animalsTypesDAO.updateTypeById(animalsTypes.getType(), typeId);
 
         return AnimalsTypesDTO.Response.AnimalsTypes
-                        .builder()
-                        .id(typeId)
-                        .type(animalsTypes.getType())
-                        .build();
+                .builder()
+                .id(typeId)
+                .type(animalsTypes.getType())
+                .build();
     }
 
     @Override
-    public void deleteAnimalsTypesById(@Min(1) @NotNull Long typeId) throws BadRequestException, NotFoundException {
-        Optional<Animal> opAnimal = animalsDAO.findByAnimalTypesId(typeId);
+    public void deleteAnimalsTypesById(@Min(1) @NotNull Long typeId, AnimalService animalService) throws BadRequestException, NotFoundException {
+        var opAnimal = animalService.findById(typeId);
 
-        if (opAnimal.isPresent()) {
+        if (opAnimal != null) {
             throw new BadRequestException("Animal with this type of animal exists");
         }
 
-        Optional<AnimalType> opAnimalsTypes = animalsTypesDAO.findById(typeId);
-
-        if (opAnimalsTypes.isEmpty()) {
-            throw new NotFoundException("Animal type not found");
-        }
+        animalsTypesDAO.findById(typeId).orElseThrow(() -> new NotFoundException("Animal type not found"));
 
         animalsTypesDAO.deleteById(typeId);
     }
 
     @Override
-    public boolean isNotExists(Long animalTypeId) {
-        return getAnimalsTypesById(animalTypeId) == null;
-    }
-
-    @Override
-    public AnimalType getEntityAnimalsTypesById(Long typeId) {
-        return animalsTypesDAO.findById(typeId).get();
+    public AnimalType getEntityAnimalsTypesById(Long typeId) throws NotFoundException {
+        return animalsTypesDAO.findById(typeId).orElseThrow(() -> new NotFoundException("Location not found with with id: " + typeId));
     }
 }

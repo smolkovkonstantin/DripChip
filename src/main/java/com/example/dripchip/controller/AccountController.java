@@ -1,19 +1,17 @@
-package com.example.dripchip.controllers;
+package com.example.dripchip.controller;
 
 import com.example.dripchip.dto.AccountDTO.Response;
 import com.example.dripchip.dto.AccountDTO.Request;
-import com.example.dripchip.entites.Account;
 import com.example.dripchip.exception.BadRequestException;
 import com.example.dripchip.exception.ConflictException;
 import com.example.dripchip.exception.ForbiddenException;
+import com.example.dripchip.exception.NotFoundException;
 import com.example.dripchip.service.AccountService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,14 +21,13 @@ public class AccountController {
     private final AccountService accountService;
 
     @GetMapping("/{accountId}")
-    public ResponseEntity<Account> getInformationAboutAccountById
-            (@PathVariable Integer accountId) {
-        return accountService.getAccountById(accountId)
-                .map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Response.Information> getInformationAboutAccountById
+            (@PathVariable Integer accountId) throws NotFoundException {
+        return ResponseEntity.ok(accountService.parseToDTO(accountService.getAccountById(accountId)));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Stream<Account>> getInformationAboutAccountBySearch
+    public ResponseEntity<List<Response.Information>> getInformationAboutAccountBySearch
             (
                     @RequestParam(required = false) String firstName,
                     @RequestParam(required = false) String lastName,
@@ -47,23 +44,20 @@ public class AccountController {
                 .from(from)
                 .size(size)
                 .build();
-        var opAccounts = accountService.findInformationAboutAccountBySearch(searchDTO);
 
-        return opAccounts.map(ResponseEntity::ok).orElse(ResponseEntity.ok().build());
+        return ResponseEntity.ok(accountService.findInformationAboutAccountBySearch(searchDTO));
     }
 
 
     @PutMapping("/{accountId}")
-    public ResponseEntity<Response.UpdateAccount> updateAccountById(
-            @PathVariable Integer accountId, @RequestBody Request.UpdateAccount updateAccount
-    ) throws ForbiddenException, ConflictException {
-        return accountService.updateAccountById(accountId, updateAccount)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Response.Information> updateAccountById(
+            @PathVariable Integer accountId,
+            @RequestBody Request.UpdateAccount updateAccount) throws ForbiddenException, ConflictException, NotFoundException {
+        return ResponseEntity.ok(accountService.updateAccountById(accountId, updateAccount));
     }
 
     @DeleteMapping("/{accountId}")
-    public void deleteAccountById(@PathVariable Integer accountId) throws ForbiddenException, BadRequestException {
+    public void deleteAccountById(@PathVariable Integer accountId) throws ForbiddenException, BadRequestException, NotFoundException {
         accountService.deleteAccountById(accountId);
     }
 }

@@ -8,22 +8,21 @@ import com.example.dripchip.entites.Role;
 import com.example.dripchip.exception.BadRequestException;
 import com.example.dripchip.exception.ConflictException;
 import com.example.dripchip.exception.ForbiddenException;
-import com.example.dripchip.repositories.AccountDAO;
+import com.example.dripchip.exception.NotFoundException;
+import com.example.dripchip.repositorie.AccountDAO;
 import com.example.dripchip.service.AccountService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 
 @Service
@@ -61,70 +60,77 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Optional<Account> getAccountById(@Min(1) @NotNull Integer id) {
-        return accountDAO.findById(id);
+    public Account getAccountById(@Min(1) @NotNull Integer id) throws NotFoundException {
+        return accountDAO.findById(id).orElseThrow(
+                () -> new NotFoundException("Account not found with with id: " + id));
     }
 
     @Override
-    public Optional<Stream<Account>> findInformationAboutAccountBySearch(
-            @Valid Request.SearchAccount searchDTO) {
+    public List<Response.Information> findInformationAboutAccountBySearch(Request.SearchAccount searchDTO) {
 
         var accounts = accountDAO.searchAccountByFirstNameAndLastNameAndEmail(
                 searchDTO.getFirstName(), searchDTO.getLastName(), searchDTO.getEmail(), PageRequest.ofSize(searchDTO.getSize())
         );
 
-        return Optional.of(accounts.stream().skip(searchDTO.getFrom()));
+        return accounts.stream().skip(searchDTO.getFrom()).map(this::parseToDTO).toList();
     }
 
     @Override
-    public Optional<Response.UpdateAccount> updateAccountById
+    public Response.Information updateAccountById
             (@Min(1) @NotNull Integer accountId,
              @Valid Request.UpdateAccount updateAccount)
-            throws ConflictException, ForbiddenException {
+            throws ConflictException, ForbiddenException, NotFoundException {
 
-        Optional<Account> opAccountById = accountDAO.findById(accountId);
+        Account account = getAccountById(accountId);
 
-        if (opAccountById.isEmpty() || !doesTheUserManageTheirAccount(accountId)) {
-            throw new ForbiddenException("User can't update account another user or account hasn't found");
+        if (!doesTheUserManageTheirAccount(accountId)) {
+            throw new ForbiddenException("User can't update account another user");
         }
 
-        if (accountDAO.findByEmail(updateAccount.getEmail()).isPresent()) {
-            throw new ConflictException("");
+        Optional<Account> accountByEmail = accountDAO.findByEmail(updateAccount.getEmail());
+
+        if (accountByEmail.isPresent() && !accountByEmail.get().getEmail().equals(updateAccount.getEmail())) {
+            throw new ConflictException("This email already taken");
         }
 
-        accountDAO.updateFirstNameAndLastNameAndPasswordAndEmailById(
-                updateAccount.getFirstName(), updateAccount.getLastName(),
-                bCryptPasswordEncoder.encode(updateAccount.getPassword()), updateAccount.getEmail(),
-                accountId);
+        account.setEmail(updateAccount.getEmail());
+        account.setFirstName(updateAccount.getFirstName());
+        account.setLastName(updateAccount.getLastName());
+        account.setPassword(bCryptPasswordEncoder.encode(updateAccount.getPassword()));
 
-        return Optional.of(
-                Response.UpdateAccount.builder()
-                        .id(accountId)
-                        .firstName(updateAccount.getFirstName())
-                        .lastName(updateAccount.getLastName())
-                        .email(updateAccount.getEmail())
-                        .build()
-        );
+        return parseToDTO(account);
     }
 
     @Override
     public void deleteAccountById(@Min(1) @NotNull Integer accountId)
-            throws ForbiddenException, BadRequestException {
+            throws ForbiddenException, BadRequestException, NotFoundException {
 
-        Optional<Account> opAccountById = accountDAO.findById(accountId);
+        Account account = getAccountById(accountId);
 
-        if (!doesTheUserManageTheirAccount(accountId) || opAccountById.isEmpty()) {
+        if (!doesTheUserManageTheirAccount(accountId)) {
             throw new ForbiddenException("User can't update account another user or account hasn't found");
         }
 
-        if (opAccountById.get().getAnimals() == null || opAccountById.get().getAnimals().size() > 0) {
+        if (account.getAnimals() == null || account.getAnimals().size() > 0) {
             throw new BadRequestException("User has information about animal in the account");
         }
+
+        accountDAO.delete(account);
     }
 
     private boolean doesTheUserManageTheirAccount(int id) {
         Account userAccount = (Account) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         return userAccount.getId().equals(id);
+    }
+
+    @Override
+    public Response.Information parseToDTO(Account account) {
+        return Response.Information.builder()
+                .id(account.getId())
+                .firstName(account.getFirstName())
+                .lastName(account.getLastName())
+                .email(account.getEmail())
+                .build();
     }
 }

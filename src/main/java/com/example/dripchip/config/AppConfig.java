@@ -1,6 +1,6 @@
 package com.example.dripchip.config;
 
-import com.example.dripchip.repositories.AccountDAO;
+import com.example.dripchip.repositorie.AccountDAO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

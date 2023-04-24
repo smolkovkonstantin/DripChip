@@ -1,4 +1,4 @@
-package com.example.dripchip.controllers.advice;
+package com.example.dripchip.controller.advice;
 
 import com.example.dripchip.exception.BadRequestException;
 import com.example.dripchip.exception.ConflictException;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.text.ParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,22 +50,22 @@ public class ErrorHandlingControllerAdvice {
 
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<?> onConflictException(ConflictException e) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
     }
 
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<?> onForbiddenException(ForbiddenException e){
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
     }
 
-    @ExceptionHandler(BadRequestException.class)
+    @ExceptionHandler({BadRequestException.class, ParseException.class})
     public ResponseEntity<?> onBadRequestException(BadRequestException e){
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<?> onNotFoundException(NotFoundException e){
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 }
 

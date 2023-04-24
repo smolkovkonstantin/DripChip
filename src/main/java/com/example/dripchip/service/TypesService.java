@@ -8,18 +8,14 @@ import com.example.dripchip.exception.NotFoundException;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-import java.util.Optional;
-
-public interface AnimalsTypesService {
+public interface TypesService {
     AnimalsTypesDTO.Response.AnimalsTypes addAnimalsTypes(AnimalsTypesDTO.Request.AnimalsTypes animalsTypes) throws ConflictException;
 
     AnimalsTypesDTO.Response.AnimalsTypes getAnimalsTypesById(@NotNull @Min(1) Long typeId);
 
     AnimalsTypesDTO.Response.AnimalsTypes putAnimalsTypesById(Long typeId, AnimalsTypesDTO.Request.AnimalsTypes animalsTypes) throws ConflictException;
 
-    void deleteAnimalsTypesById(@Min(1) @NotNull  Long typeId) throws BadRequestException, NotFoundException;
+    void deleteAnimalsTypesById(@Min(1) @NotNull  Long typeId, AnimalService animalService) throws BadRequestException, NotFoundException;
 
-    boolean isNotExists(Long animalTypeId);
-
-    AnimalType getEntityAnimalsTypesById(Long typeId);
+    AnimalType getEntityAnimalsTypesById(Long typeId) throws NotFoundException;
 }

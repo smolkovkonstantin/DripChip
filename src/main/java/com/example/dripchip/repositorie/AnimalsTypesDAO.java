@@ -1,4 +1,4 @@
-package com.example.dripchip.repositories;
+package com.example.dripchip.repositorie;
 
 import com.example.dripchip.entites.AnimalType;
 import org.springframework.data.jpa.repository.JpaRepository;

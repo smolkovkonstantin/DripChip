@@ -1,10 +1,11 @@
 package com.example.dripchip.service.impl;
 
-import com.example.dripchip.dto.LocationDTO;
+import com.example.dripchip.dto.LocationDTO.Response;
+import com.example.dripchip.dto.LocationDTO.Request;
 import com.example.dripchip.entites.LocationPoint;
 import com.example.dripchip.exception.ConflictException;
 import com.example.dripchip.exception.NotFoundException;
-import com.example.dripchip.repositories.LocationDAO;
+import com.example.dripchip.repositorie.LocationDAO;
 import com.example.dripchip.service.LocationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -12,8 +13,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,79 +22,65 @@ public class LocationServiceImpl implements LocationService {
     private final LocationDAO locationDAO;
 
     @Override
-    public Optional<LocationDTO.Response.Location> addLocation(@Valid LocationDTO.Request.Location location)
+    public Response.Location addLocation(@Valid Request.Location locationDTO)
             throws ConflictException {
 
-        var locationByLatitude = locationDAO.findByLatitude(location.getLatitude());
+        isExistsByLatitudeAndLongitude(locationDTO);
 
-        var locationByLongitude = locationDAO.findByLongitude(location.getLongitude());
-
-        if (isConflict(locationByLatitude, locationByLongitude)) {
-            throw new ConflictException("This location is already exists");
-        }
-
-        LocationPoint newLocation = LocationPoint
+        LocationPoint location = LocationPoint
                 .builder()
-                .latitude(location.getLatitude())
-                .longitude(location.getLongitude())
+                .latitude(locationDTO.getLatitude())
+                .longitude(locationDTO.getLongitude())
                 .build();
 
-        locationDAO.save(newLocation);
+        locationDAO.save(location);
 
-        return Optional.of(LocationDTO.Response.Location
-                        .builder()
-                        .id(newLocation.getId())
-                        .latitude(newLocation.getLatitude())
-                        .longitude(newLocation.getLongitude())
-                        .build());
+        return parseToDTO(location);
     }
 
     @Override
-    public Optional<LocationPoint> findLocationById(@Min(1) @NotNull Long pointId) {
-        return locationDAO.findById(pointId);
+    public LocationPoint findLocationById(@Min(1) @NotNull Long pointId) throws NotFoundException {
+        return locationDAO.findById(pointId).orElseThrow(() -> new NotFoundException("Location point with point id " + pointId + " not found"));
     }
 
     @Override
-    public Optional<LocationDTO.Response.Location> updateById(@Min(1) @NotNull  Long pointId, @Valid LocationDTO.Request.Location location) throws ConflictException {
+    public Response.Location updateById(@Min(1) @NotNull Long pointId, @Valid Request.Location locationDTO) throws ConflictException, NotFoundException {
 
-        var locationById = locationDAO.findById(pointId);
+        isExistsByLatitudeAndLongitude(locationDTO);
 
-        if (locationById.isEmpty()) {
-            return Optional.empty();
-        }
+        LocationPoint locationPoint = findLocationById(pointId);
 
-        var locationByLatitude = locationDAO.findByLatitude(location.getLatitude());
-        var locationByLongitude = locationDAO.findByLongitude(location.getLongitude());
+        locationPoint.setLatitude(locationDTO.getLatitude());
+        locationPoint.setLongitude(locationDTO.getLongitude());
 
-        if (isConflict(locationByLatitude, locationByLongitude)) {
-            throw new ConflictException("This location is already exists");
-        }
+        locationDAO.save(locationPoint);
 
-        locationDAO.updateLatitudeAndLongitudeById(location.getLatitude(), location.getLongitude(), pointId);
-        return Optional.of(LocationDTO.Response.Location
-                .builder()
-                .id(pointId)
-                .longitude(location.getLongitude())
-                .latitude(location.getLatitude())
-                .build());
+        return parseToDTO(locationPoint);
     }
 
+
     @Override
-    public void deleteById(@Min(1) @NotNull  Long pointId) throws NotFoundException {
+    public void deleteById(@Min(1) @NotNull Long pointId) throws NotFoundException {
 
-        var opLocation = locationDAO.findById(pointId);
-
-        if (opLocation.isEmpty()) {
-            throw new NotFoundException("LocationPoint not found");
-        }
+        findLocationById(pointId);
 
         locationDAO.deleteById(pointId);
     }
 
-    // TODO add validation
-    private boolean isConflict(Optional<LocationPoint> locationByLatitude, Optional<LocationPoint> locationByLongitude) {
-        return locationByLatitude.isPresent() && locationByLongitude.isPresent() &&
-                locationByLatitude.get().equals(locationByLongitude.get());
+    @Override
+    public Response.Location parseToDTO(LocationPoint location) {
+        return Response.Location
+                .builder()
+                .id(location.getId())
+                .latitude(location.getLatitude())
+                .longitude(location.getLongitude())
+                .build();
     }
 
+    private void isExistsByLatitudeAndLongitude(Request.Location locationDTO) throws ConflictException {
+        if (locationDAO.findByLatitudeAndLongitude(locationDTO.getLatitude(), locationDTO.getLongitude()).isPresent()) {
+            throw new ConflictException(String.format("Location with latitude %s and longitude %s already exists",
+                    locationDTO.getLatitude(), locationDTO.getLongitude()));
+        }
+    }
 }

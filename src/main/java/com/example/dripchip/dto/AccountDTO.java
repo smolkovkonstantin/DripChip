@@ -4,27 +4,35 @@ import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 
 public class AccountDTO {
 
     protected interface Id {
-        @Positive Integer getId();
+        @Positive @NotNull Integer getId();
     }
 
     protected interface FirstName {
+        @NotBlank
+        @NotNull
         String getFirstName();
     }
 
     protected interface LastName {
+        @NotBlank
+        @NotNull
         String getLastName();
     }
 
     protected interface Email {
+        @NotBlank
+        @NotNull
+        @jakarta.validation.constraints.Email
         String getEmail();
     }
 
     protected interface Password {
+        @NotBlank
+        @NotNull
         String getPassword();
     }
 
@@ -43,18 +51,9 @@ public class AccountDTO {
 
         @Getter
         public static class UpdateAccount implements FirstName, LastName, Email, Password {
-            @NotBlank
-            @NotNull
             private String firstName;
-            @NotBlank
-            @NotNull
             private String lastName;
-            @NotBlank
-            @NotNull
-            @jakarta.validation.constraints.Email
             private String email;
-            @NotBlank
-            @NotNull
             private String password;
         }
 
@@ -81,19 +80,6 @@ public class AccountDTO {
             String firstName;
             String lastName;
             String email;
-        }
-
-        @Getter
-        @Setter
-        @Builder
-        public static class UpdateAccount implements Id, FirstName, LastName, Email {
-            private Integer id;
-            private String firstName;
-            private String lastName;
-            private String email;
-        }
-
-        public static class Empty {
         }
     }
 

@@ -2,7 +2,6 @@ package com.example.dripchip.dto;
 
 import com.example.dripchip.annotation.GenderAnnotation;
 import com.example.dripchip.annotation.LifeStatusAnnotation;
-import com.example.dripchip.entites.model.LifeStatus;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -11,11 +10,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 
-public class AnimalsDTO {
+public class AnimalDTO {
     private interface AnimalTypes {
         @NotNull @Size(min = 1)
-        Long[] getAnimalTypes();
+        List<Long> getAnimalTypes();
     }
 
     private interface Weight {
@@ -48,7 +48,7 @@ public class AnimalsDTO {
     }
 
     private interface VisitedLocation {
-        long[] getVisitedLocation();
+        List<Long> getVisitedLocation();
     }
 
     private interface DeathDateTime {
@@ -66,13 +66,23 @@ public class AnimalsDTO {
         Date getChippingDateTime();
     }
 
+    private interface OldTypeId {
+        @NotNull @Min(1)
+        Long getOldTypeId();
+    }
+
+    private interface NewTypeId {
+        @NotNull @Min(1)
+        Long getNewTypeId();
+    }
+
 
     public enum Request {
         ;
 
         @Getter
-        public static class Registration implements AnimalTypes, Weight, AnimalsDTO.Gender, ChipperId, ChippingLocationId, Length, Height {
-            private Long[] animalTypes;
+        public static class Registration implements AnimalTypes, Weight, AnimalDTO.Gender, ChipperId, ChippingLocationId, Length, Height {
+            private List<Long> animalTypes;
             private Float weight;
             private Float length;
             private Float height;
@@ -82,7 +92,7 @@ public class AnimalsDTO {
         }
 
         @Getter
-        public static class Update implements Weight, Length, Height, Gender, AnimalsDTO.LifeStatus, ChipperId, ChippingLocationId {
+        public static class Update implements Weight, Length, Height, Gender, AnimalDTO.LifeStatus, ChipperId, ChippingLocationId {
             private Float weight;
             private Float length;
             private Float height;
@@ -90,6 +100,25 @@ public class AnimalsDTO {
             private String lifeStatus;
             private Integer chipperId;
             private Long chippingLocationId;
+        }
+
+        @Getter
+        public static class UpdateAnimalType implements OldTypeId, NewTypeId {
+            private Long oldTypeId;
+            private Long newTypeId;
+        }
+
+        @Getter
+        @Builder
+        public static class Search implements VisitedLocationDTO.StartDateTime, VisitedLocationDTO.EndDateTime, ChipperId, ChippingLocationId, LifeStatus, Gender, AccountDTO.From, AccountDTO.Size {
+            private String startDateTime;
+            private String endDateTime;
+            private String gender;
+            private String lifeStatus;
+            private Integer chipperId;
+            private Long chippingLocationId;
+            private Integer from;
+            private Integer size;
         }
     }
 
@@ -99,16 +128,16 @@ public class AnimalsDTO {
         @Getter
         @Setter
         @Builder
-        public static class Information implements LocationDTO.Id, AnimalTypes, Weight, Length, Height, Gender, AnimalsDTO.LifeStatus, ChippingDateTime, ChipperId, ChippingLocationId, VisitedLocation, DeathDateTime {
+        public static class Information implements LocationDTO.Id, AnimalTypes, Weight, Length, Height, Gender, AnimalDTO.LifeStatus, ChippingDateTime, ChipperId, ChippingLocationId, VisitedLocation, DeathDateTime {
             private Long id;
-            private Long[] animalTypes;
+            private List<Long> animalTypes;
             private Float weight;
             private Float length;
             private Float height;
             private String gender;
             private Integer chipperId;
             private Long chippingLocationId;
-            private long[] visitedLocation;
+            private List<Long> visitedLocation;
             private Date deathDateTime;
             private String lifeStatus;
             private Date chippingDateTime;

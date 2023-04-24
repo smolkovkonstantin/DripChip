@@ -1,18 +1,21 @@
 package com.example.dripchip.entites;
 
-import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.Hibernate;
 import org.springframework.lang.Nullable;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
 public class Animal {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,32 +24,15 @@ public class Animal {
 
     @ManyToMany
     @ToString.Exclude
-    @JsonIgnore
     private List<AnimalType> animalTypes;
 
-    @Transient
-    @JsonProperty("animalTypes")
-    private List<Long> animalTypesJson;
-
     @ManyToMany
-    @JsonIgnore
     @ToString.Exclude
     private List<VisitedLocation> visitedLocations;
 
-    @Transient
-    @JsonProperty("visitedLocations")
-    private List<Long> visitedLocationsJson;
-
     @ManyToOne
-    @JsonIgnore
     @JoinColumn(name = "account")
     private Account account;
-
-    @Transient
-    private Integer chipperId;
-
-    @Transient
-    private Long chippingLocationId;
 
     private Float weight;
     private Float length;
@@ -54,7 +40,21 @@ public class Animal {
     private String gender;
     private String lifeStatus;
     private Date chippingDateTime;
+    private Long chippingLocationId;
 
     @Nullable
     private Date deathDateTime;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Animal animal = (Animal) o;
+        return getId() != null && Objects.equals(getId(), animal.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

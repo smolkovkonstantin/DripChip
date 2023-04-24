@@ -10,6 +10,7 @@ import lombok.Setter;
 public class LocationDTO {
 
     protected interface Id {
+        @NotNull @Min(1)
         Long getId();
     }
 
@@ -24,7 +25,6 @@ public class LocationDTO {
     public enum Request {
         ;
         @Getter
-        @Setter
         public static class Location implements Longitude, Latitude {
             private Double longitude;
             private Double latitude;
@@ -41,10 +41,6 @@ public class LocationDTO {
             private Long id;
             private Double longitude;
             private Double latitude;
-        }
-
-        @Builder
-        public static class Empty {
         }
     }
 

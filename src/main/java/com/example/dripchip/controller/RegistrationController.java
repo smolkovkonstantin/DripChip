@@ -1,11 +1,9 @@
-package com.example.dripchip.controllers;
+package com.example.dripchip.controller;
 
 
-import com.example.dripchip.dto.RegistrationDTO.Response;
 import com.example.dripchip.dto.RegistrationDTO.Request;
 import com.example.dripchip.exception.ConflictException;
 import com.example.dripchip.service.AccountService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
