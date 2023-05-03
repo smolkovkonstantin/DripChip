@@ -13,6 +13,7 @@ import com.example.dripchip.service.AnimalService;
 import com.example.dripchip.service.LocationService;
 import com.example.dripchip.service.VisitedLocationsService;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -55,7 +55,7 @@ public class VisitedLocationsServiceImpl implements VisitedLocationsService {
 
         int lastIndex = animal.getVisitedLocations().size() - 1;
 
-        if (animal.getVisitedLocations().size() != 0 && animal.getVisitedLocations().get(lastIndex).getLocationPoint().getId().equals(pointId)) {
+        if (animal.getVisitedLocations().size() != 0 && animal.getVisitedLocations().get(lastIndex).getId().equals(pointId)) {
             throw new BadRequestException("An attempt to add a visit location where an animal is already located");
         } else {
             visitedLocationsDAO.save(visitedLocation);
@@ -68,7 +68,7 @@ public class VisitedLocationsServiceImpl implements VisitedLocationsService {
 
     @Override
     public Response.VisitedLocationInfo updateVisitedLocationInAnimal(
-            @Min(1) @NotNull Long animalId, Request.Update update) throws NotFoundException, BadRequestException {
+            @Min(1) @NotNull Long animalId, @Valid Request.Update update) throws NotFoundException, BadRequestException {
         Animal animal = animalService.findById(animalId);
         List<VisitedLocation> visitedLocations = animal.getVisitedLocations();
         VisitedLocation visitedLocation = getVisitedLocationById(update.getVisitedLocationPointId());
@@ -88,6 +88,11 @@ public class VisitedLocationsServiceImpl implements VisitedLocationsService {
             throw new BadRequestException("Attempt to update a visited location that already exists");
         }
 
+        if (!check(index, visitedLocations, locationPoint)){
+            throw new BadRequestException("Attempt to update a visited location that matcher with the next or previous");
+        }
+
+
         visitedLocation.setLocationPoint(locationPoint);
         visitedLocationsDAO.save(visitedLocation);
 
@@ -96,6 +101,16 @@ public class VisitedLocationsServiceImpl implements VisitedLocationsService {
         animalService.saveAnimal(animal);
 
         return parseToDTO(visitedLocation);
+    }
+
+    private boolean check(int index, List<VisitedLocation> visitedLocations, LocationPoint locationPoint) {
+        if (index > 1 && visitedLocations.get(index - 1).getLocationPoint().equals(locationPoint)){
+            return false;
+        }
+        if (index < visitedLocations.size() - 1 && visitedLocations.get(index + 1).getLocationPoint().equals(locationPoint)){
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -109,23 +124,26 @@ public class VisitedLocationsServiceImpl implements VisitedLocationsService {
 
         if (id != -1) {
             animal.getVisitedLocations().remove(id);
-            visitedLocationsDAO.delete(visitedLocation);
             animalService.saveAnimal(animal);
+            visitedLocationsDAO.delete(visitedLocation);
         } else {
             throw new NotFoundException("Animal hasn't visited this location");
         }
     }
 
     @Override
-    public Optional<List<Response.VisitedLocationInfo>> search
-            (Long animalId, Request.Search searchDTO) throws NotFoundException, ParseException {
+    public List<Response.VisitedLocationInfo> search
+            (Long animalId, Request.Search searchDTO) throws NotFoundException, ParseException, BadRequestException {
+
+        if (searchDTO.getFrom() < 0 || searchDTO.getSize() <= 0) {
+            throw new BadRequestException("From must can't be less than 1 and size can't be less and equal than 0");
+        }
+
         Animal animal = animalService.findById(animalId);
         List<VisitedLocation> visitedLocations = animal.getVisitedLocations();
 
-        DateFormat dateFormat = new StdDateFormat();
-
-        return Optional.of(searchByParameters(dateFormat.parse(searchDTO.getStartDateTime()), dateFormat.parse(searchDTO.getEndDateTime()),
-                searchDTO.getFrom(), searchDTO.getSize(), visitedLocations));
+        return searchByParameters(searchDTO.getStartDateTime(), searchDTO.getEndDateTime(),
+                searchDTO.getFrom(), searchDTO.getSize(), visitedLocations);
     }
 
     private Response.VisitedLocationInfo parseToDTO(VisitedLocation visitedLocation) {
@@ -142,19 +160,24 @@ public class VisitedLocationsServiceImpl implements VisitedLocationsService {
     }
 
     private List<Response.VisitedLocationInfo> searchByParameters(
-            Date startDateTime, Date endDateTime,
+            String stringStartDateTime, String stringEndDateTime,
             int from, int size,
-            List<VisitedLocation> visitedLocations) {
+            List<VisitedLocation> visitedLocations) throws ParseException {
+
+        DateFormat dateFormat = new StdDateFormat();
 
         List<Response.VisitedLocationInfo> result = new ArrayList<>();
 
+        Date startDateTime = (stringStartDateTime != null) ? dateFormat.parse(stringStartDateTime) : null;
+        Date endDateTime = (stringStartDateTime != null) ? dateFormat.parse(stringEndDateTime) : null;
+
         visitedLocations.forEach(visitedLocation -> {
 
-            if (startDateTime == null && endDateTime == null) {
+            if (stringStartDateTime == null && stringEndDateTime == null) {
                 result.add(parseToDTO(visitedLocation));
-            } else if (startDateTime == null && visitedLocation.getDateTimeOfVisitLocationPoint().before(endDateTime)) {
+            } else if (stringStartDateTime != null && visitedLocation.getDateTimeOfVisitLocationPoint().before(startDateTime)) {
                 result.add(parseToDTO(visitedLocation));
-            } else if (endDateTime == null && visitedLocation.getDateTimeOfVisitLocationPoint().after(startDateTime)) {
+            } else if (stringEndDateTime != null && visitedLocation.getDateTimeOfVisitLocationPoint().after(endDateTime)) {
                 result.add(parseToDTO(visitedLocation));
             } else if (visitedLocation.getDateTimeOfVisitLocationPoint().after(startDateTime)
                     && visitedLocation.getDateTimeOfVisitLocationPoint().before(endDateTime)) {
@@ -162,6 +185,6 @@ public class VisitedLocationsServiceImpl implements VisitedLocationsService {
             }
         });
 
-        return result.stream().limit(size).skip(from).toList();
+        return result.stream().skip(from).limit(size).toList();
     }
 }

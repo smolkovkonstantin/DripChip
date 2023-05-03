@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotNull;
 
 public interface AnimalTypeService {
 
-    AnimalDTO.Response.Information addAnimalTypeToAnimal(@Min(0) @NotNull Long animalId, @Min(0) @NotNull Long typeId) throws NotFoundException, ConflictException;
+    AnimalDTO.Response.Information addAnimalTypeToAnimal(@Min(1) @NotNull Long animalId, @Min(1) @NotNull Long typeId) throws NotFoundException, ConflictException;
 
     AnimalDTO.Response.Information updateAnimalTypeInAnimal(@NotNull @Min(1) Long animalId, @Valid AnimalDTO.Request.UpdateAnimalType update) throws NotFoundException, ConflictException;
 

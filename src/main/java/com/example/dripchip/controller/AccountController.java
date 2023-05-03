@@ -2,6 +2,7 @@ package com.example.dripchip.controller;
 
 import com.example.dripchip.dto.AccountDTO.Response;
 import com.example.dripchip.dto.AccountDTO.Request;
+import com.example.dripchip.entites.Account;
 import com.example.dripchip.exception.BadRequestException;
 import com.example.dripchip.exception.ConflictException;
 import com.example.dripchip.exception.ForbiddenException;
@@ -23,7 +24,8 @@ public class AccountController {
     @GetMapping("/{accountId}")
     public ResponseEntity<Response.Information> getInformationAboutAccountById
             (@PathVariable Integer accountId) throws NotFoundException {
-        return ResponseEntity.ok(accountService.parseToDTO(accountService.getAccountById(accountId)));
+        Account account = accountService.getAccountById(accountId).orElseThrow(() -> new NotFoundException("Account doesn't exists"));
+        return ResponseEntity.ok(accountService.parseToDTO(account));
     }
 
     @GetMapping("/search")
@@ -34,7 +36,7 @@ public class AccountController {
                     @RequestParam(required = false) String email,
                     @RequestParam(required = false, defaultValue = "0") Integer from,
                     @RequestParam(required = false, defaultValue = "10") Integer size
-            ) {
+            ) throws BadRequestException {
 
         var searchDTO = Request.SearchAccount
                 .builder()

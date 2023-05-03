@@ -16,11 +16,11 @@ import java.util.Optional;
 
 public interface AccountService {
 
-    Optional<RegistrationDTO.Response.Registration> register(@Valid RegistrationDTO.Request.Registration registrationDTO) throws ConflictException;
+    AccountDTO.Response.Information register(@Valid RegistrationDTO.Request.Registration registrationDTO) throws ConflictException;
 
-    Account getAccountById(@Min(1) @NotNull Integer id) throws NotFoundException;
+    Optional<Account> getAccountById(@Min(1) @NotNull Integer id);
 
-    List<AccountDTO.Response.Information> findInformationAboutAccountBySearch(AccountDTO.Request.SearchAccount searchDTO);
+    List<AccountDTO.Response.Information> findInformationAboutAccountBySearch(AccountDTO.Request.SearchAccount searchDTO) throws BadRequestException;
 
     AccountDTO.Response.Information updateAccountById(@Min(1) @NotNull Integer accountId, @Valid AccountDTO.Request.UpdateAccount updateAccount) throws ConflictException, ForbiddenException, NotFoundException;
 

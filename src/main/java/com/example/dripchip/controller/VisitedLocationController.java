@@ -47,7 +47,7 @@ public class VisitedLocationController {
             @RequestParam(required = false) String endDateTime,
             @RequestParam(required = false, defaultValue = "0") Integer from,
             @RequestParam(required = false, defaultValue = "10") Integer size,
-            @PathVariable Long animalId) throws NotFoundException, ParseException {
+            @PathVariable Long animalId) throws NotFoundException, ParseException, BadRequestException {
 
         VisitedLocationDTO.Request.Search searchDTO = VisitedLocationDTO.Request.Search
                 .builder()
@@ -57,8 +57,6 @@ public class VisitedLocationController {
                 .size(size)
                 .build();
 
-        return visitedLocationsService.search(animalId, searchDTO)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.ok().build());
+        return ResponseEntity.ok(visitedLocationsService.search(animalId, searchDTO));
     }
 }

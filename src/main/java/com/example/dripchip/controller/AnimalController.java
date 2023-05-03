@@ -36,7 +36,7 @@ public class AnimalController {
             @RequestParam(required = false) String lifeStatus,
             @RequestParam(required = false) String gender,
             @RequestParam(required = false, defaultValue = "0") Integer from,
-            @RequestParam(required = false, defaultValue = "10") Integer size) throws ParseException {
+            @RequestParam(required = false, defaultValue = "10") Integer size) throws ParseException, BadRequestException {
 
         Request.Search searchDTO = Request.Search.builder()
                 .startDateTime(startDateTime)
@@ -62,7 +62,7 @@ public class AnimalController {
     public ResponseEntity<Response.Information> updateAnimal(
             @PathVariable Long animalId,
             @RequestBody Request.Update update
-    ) throws NotFoundException, ConflictException {
+    ) throws NotFoundException, BadRequestException {
         return ResponseEntity.ok(animalService.update(animalId, update));
     }
 

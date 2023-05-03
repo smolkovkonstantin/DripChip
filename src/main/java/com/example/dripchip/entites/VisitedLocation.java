@@ -18,7 +18,7 @@ public class VisitedLocation {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.REMOVE)
     private List<Animal> animal;
 
     private Date dateTimeOfVisitLocationPoint;

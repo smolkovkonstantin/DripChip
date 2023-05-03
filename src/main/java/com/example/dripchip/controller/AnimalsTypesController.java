@@ -27,11 +27,11 @@ public class AnimalsTypesController {
 
     @PostMapping("/types")
     public ResponseEntity<Response.AnimalsTypes> addAnimalsTypes(@RequestBody Request.AnimalsTypes animalsTypes) throws ConflictException {
-        return ResponseEntity.ok(typesService.addAnimalsTypes(animalsTypes));
+        return ResponseEntity.status(HttpStatus.CREATED).body(typesService.addAnimalsTypes(animalsTypes));
     }
 
     @GetMapping("/types/{typeId}")
-    public ResponseEntity<Response.AnimalsTypes> getAnimalsTypes(@PathVariable Long typeId) {
+    public ResponseEntity<Response.AnimalsTypes> getAnimalsTypes(@PathVariable Long typeId) throws NotFoundException {
         return ResponseEntity.ok(typesService.getAnimalsTypesById(typeId));
     }
 
@@ -39,13 +39,13 @@ public class AnimalsTypesController {
     @PutMapping("/types/{typeId}")
     public ResponseEntity<Response.AnimalsTypes> putAnimalsTypesById(
             @PathVariable @NotNull @Min(1) Long typeId,
-            @RequestBody @Valid Request.AnimalsTypes animalsTypes) throws ConflictException {
+            @RequestBody @Valid Request.AnimalsTypes animalsTypes) throws ConflictException, NotFoundException {
         return ResponseEntity.ok(typesService.putAnimalsTypesById(typeId, animalsTypes));
     }
 
     @DeleteMapping("/types/{typeId}")
     public void deleteAnimalsTypesById(@PathVariable Long typeId) throws BadRequestException, NotFoundException {
-        typesService.deleteAnimalsTypesById(typeId, animalService);
+        typesService.deleteAnimalsTypesById(typeId);
     }
 
     @PostMapping("/{animalId}/types/{typeId}")

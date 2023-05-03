@@ -25,7 +25,7 @@ public class AnimalTypeServiceImpl implements AnimalTypeService {
     private final TypesService typesService;
 
     @Override
-    public AnimalDTO.Response.Information addAnimalTypeToAnimal(@Min(0) @NotNull Long animalId, @Min(0) @NotNull Long typeId) throws NotFoundException, ConflictException {
+    public AnimalDTO.Response.Information addAnimalTypeToAnimal(@Min(1) @NotNull Long animalId, @Min(1) @NotNull Long typeId) throws NotFoundException, ConflictException {
 
         Animal animal = animalService.findById(animalId);
         AnimalType animalType = typesService.getEntityAnimalsTypesById(typeId);
@@ -37,6 +37,10 @@ public class AnimalTypeServiceImpl implements AnimalTypeService {
         animal.getAnimalTypes().add(animalType);
 
         animalService.saveAnimal(animal);
+
+        animalType.getAnimal().add(animal);
+
+        typesService.save(animalType);
 
         return animalService.parseToDTO(animal);
     }
@@ -75,9 +79,12 @@ public class AnimalTypeServiceImpl implements AnimalTypeService {
             throw new BadRequestException("Animal with id" + animalId + "has only one type of animal with id " + typeId);
         }
 
-        animal.getAnimalTypes().remove(animalType);
 
+        animal.getAnimalTypes().remove(animalType);
         animalService.saveAnimal(animal);
+
+        animalType.getAnimal().remove(animal);
+        typesService.save(animalType);
 
         return animalService.parseToDTO(animal);
     }

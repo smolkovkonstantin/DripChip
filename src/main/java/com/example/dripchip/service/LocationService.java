@@ -2,6 +2,7 @@ package com.example.dripchip.service;
 
 import com.example.dripchip.dto.LocationDTO;
 import com.example.dripchip.entites.LocationPoint;
+import com.example.dripchip.exception.BadRequestException;
 import com.example.dripchip.exception.ConflictException;
 import com.example.dripchip.exception.NotFoundException;
 import jakarta.validation.Valid;
@@ -15,7 +16,7 @@ public interface LocationService {
 
     LocationDTO.Response.Location updateById(@Min(1) @NotNull  Long pointId, @Valid LocationDTO.Request.Location location) throws ConflictException, NotFoundException;
 
-    void deleteById(@Min(1) @NotNull  Long pointId) throws NotFoundException;
+    void deleteById(@Min(1) @NotNull  Long pointId) throws NotFoundException, BadRequestException;
 
     LocationDTO.Response.Location parseToDTO(LocationPoint location);
 }

@@ -1,11 +1,15 @@
 package com.example.dripchip.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 
 public class AnimalsTypesDTO {
 
     private interface Type {
+        @NotNull
+        @NotBlank
         String getType();
     }
 

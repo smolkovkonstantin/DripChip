@@ -14,7 +14,7 @@ public interface AccountDAO extends JpaRepository<Account, Integer> {
             " and (lower(last_name) like '%' || lower(?2) || '%' or ?2 is null)" +
             " and (lower(email) like '%' || lower(?3) || '%' or ?3 is null)" +
             " order by id_account", nativeQuery = true)
-    List<Account> searchAccountByFirstNameAndLastNameAndEmail(String firstName, String lastName, String email, Pageable pageable);
+    List<Account> searchAccountByFirstNameAndLastNameAndEmail(String firstName, String lastName, String email);
 
     Optional<Account> findByEmail(String email);
 

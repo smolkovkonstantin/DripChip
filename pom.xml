@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>DripChip</artifactId>
+    <artifactId>drip-chip</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>DripChip</name>
     <description>DripChip</description>

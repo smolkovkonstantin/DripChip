@@ -22,19 +22,5 @@ public class RegistrationDTO {
             private String password;
         }
     }
-
-    public enum Response {
-        ;
-
-        @Getter
-        @Setter
-        @Builder
-        public static class Registration implements AccountDTO.Id, AccountDTO.FirstName, AccountDTO.LastName, AccountDTO.Email {
-            private Integer id;
-            private String firstName;
-            private String lastName;
-            private String email;
-        }
-    }
 }
 

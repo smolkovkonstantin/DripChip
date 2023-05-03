@@ -19,9 +19,10 @@ public class AnimalType {
     @Column(name = "id", nullable = false)
     private Long id;
 
+    @Column(unique = true)
     private String type;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.REMOVE)
     @ToString.Exclude
     private List<Animal> animal;
 }

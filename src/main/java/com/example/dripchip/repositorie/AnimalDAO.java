@@ -11,8 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 public interface AnimalDAO extends JpaRepository<Animal, Long> {
+    Optional<List<Animal>> findByChippingLocationId(Long chippingLocationId);
     @Query(value =
             "select * from Animal JOIN Account on Animal.account=Account.id_account " +
                     "WHERE (id_account = ?1 or ?1 is null) and (chipping_location_id = ?2 or ?2 is null)" +
@@ -22,8 +24,7 @@ public interface AnimalDAO extends JpaRepository<Animal, Long> {
                     " order by id", nativeQuery = true)
     List<Animal> searchByParameters(Integer chipperId, Long chippingLocationId,
                                     String lifeStatus, String gender,
-                                    Date startDateTime, Date endDateTime,
-                                    Pageable pageable);
+                                    Date startDateTime, Date endDateTime);
 
     @Transactional
     @Modifying

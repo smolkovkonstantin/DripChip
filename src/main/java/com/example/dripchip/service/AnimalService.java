@@ -18,9 +18,9 @@ public interface AnimalService {
 
     AnimalDTO.Response.Information getById(@Min(1) @NotNull Long animalId) throws NotFoundException;
 
-    AnimalDTO.Response.Information update(@NotNull @Min(1) Long animalId, @Valid AnimalDTO.Request.Update update) throws NotFoundException, ConflictException;
+    AnimalDTO.Response.Information update(@NotNull @Min(1) Long animalId, @Valid AnimalDTO.Request.Update update) throws NotFoundException, BadRequestException;
 
-    void deleteById(@NotNull @Min(0) Long animalId) throws NotFoundException, BadRequestException;
+    void deleteById(@NotNull @Min(1) Long animalId) throws NotFoundException, BadRequestException;
 
     AnimalDTO.Response.Information parseToDTO(Animal animal);
 
@@ -28,5 +28,5 @@ public interface AnimalService {
 
     void saveAnimal(Animal animal);
 
-    List<AnimalDTO.Response.Information> search(AnimalDTO.Request.Search searchDTO) throws ParseException;
+    List<AnimalDTO.Response.Information> search(AnimalDTO.Request.Search searchDTO) throws ParseException, BadRequestException;
 }

@@ -4,6 +4,7 @@ import com.example.dripchip.annotation.GenderAnnotation;
 import com.example.dripchip.annotation.LifeStatusAnnotation;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,21 +16,21 @@ import java.util.List;
 public class AnimalDTO {
     private interface AnimalTypes {
         @NotNull @Size(min = 1)
-        List<Long> getAnimalTypes();
+        List<@NotNull @Min(1) Long> getAnimalTypes();
     }
 
     private interface Weight {
-        @NotNull @Min(1)
+        @NotNull @Positive
         Float getWeight();
     }
 
     private interface Length {
-        @NotNull @Min(1)
+        @NotNull @Positive
         Float getLength();
     }
 
     private interface Height {
-        @NotNull @Min(1)
+        @NotNull @Positive
         Float getHeight();
     }
 
@@ -47,8 +48,8 @@ public class AnimalDTO {
         Long getChippingLocationId();
     }
 
-    private interface VisitedLocation {
-        List<Long> getVisitedLocation();
+    private interface VisitedLocations {
+        List<Long> getVisitedLocations();
     }
 
     private interface DeathDateTime {
@@ -128,7 +129,7 @@ public class AnimalDTO {
         @Getter
         @Setter
         @Builder
-        public static class Information implements LocationDTO.Id, AnimalTypes, Weight, Length, Height, Gender, AnimalDTO.LifeStatus, ChippingDateTime, ChipperId, ChippingLocationId, VisitedLocation, DeathDateTime {
+        public static class Information implements LocationDTO.Id, AnimalTypes, Weight, Length, Height, Gender, AnimalDTO.LifeStatus, ChippingDateTime, ChipperId, ChippingLocationId, VisitedLocations, DeathDateTime {
             private Long id;
             private List<Long> animalTypes;
             private Float weight;
@@ -137,7 +138,7 @@ public class AnimalDTO {
             private String gender;
             private Integer chipperId;
             private Long chippingLocationId;
-            private List<Long> visitedLocation;
+            private List<Long> visitedLocations;
             private Date deathDateTime;
             private String lifeStatus;
             private Date chippingDateTime;

@@ -35,8 +35,8 @@ public class AnimalServiceImpl implements AnimalService {
     @Override
     public Response.Information registration(@Valid Request.Registration registration) throws ConflictException, NotFoundException {
 
-        Account account = accountService.getAccountById(registration.getChipperId());
-        locationService.findLocationById(registration.getChippingLocationId());
+        Account account = accountService.getAccountById(registration.getChipperId()).orElseThrow(() -> new NotFoundException("Account doesn't exists"));
+        LocationPoint locationPoint = locationService.findLocationById(registration.getChippingLocationId());
 
         List<AnimalType> animalTypes = new ArrayList<>();
         registration.getAnimalTypes().forEach(typeId -> {
@@ -58,18 +58,26 @@ public class AnimalServiceImpl implements AnimalService {
                 .lifeStatus(LifeStatus.ALIVE.name())
                 .chippingDateTime(new Date())
                 .deathDateTime(null)
-                .chippingLocationId(registration.getChippingLocationId())
+                .chippingLocationId(locationPoint.getId())
                 .build();
 
         saveAnimal(animal);
+
+        animalTypes.forEach(animalType -> {
+            animalType.getAnimal().add(animal);
+            typesService.save(animalType);
+        });
 
         return parseToDTO(animal);
     }
 
     @Override
-    public List<Response.Information> search(Request.Search searchDTO) throws ParseException {
+    public List<Response.Information> search(Request.Search searchDTO) throws ParseException, BadRequestException {
 
-        PageRequest pageRequest = PageRequest.ofSize(searchDTO.getSize());
+
+        if (searchDTO.getFrom() < 0 || searchDTO.getSize() <= 0) {
+            throw new BadRequestException("From must can't be less than 1 and size can't be less and equal than 0");
+        }
 
         DateFormat dateFormat = new StdDateFormat();
 
@@ -77,11 +85,10 @@ public class AnimalServiceImpl implements AnimalService {
                 searchDTO.getChipperId(), searchDTO.getChippingLocationId(),
                 searchDTO.getLifeStatus(), searchDTO.getGender(),
                 searchDTO.getStartDateTime() == null ? null : dateFormat.parse(searchDTO.getStartDateTime()),
-                searchDTO.getEndDateTime() == null ? null : dateFormat.parse(searchDTO.getEndDateTime()),
-                pageRequest
+                searchDTO.getEndDateTime() == null ? null : dateFormat.parse(searchDTO.getEndDateTime())
         );
 
-        return animals.stream().map(this::parseToDTO).skip(searchDTO.getFrom()).toList();
+        return animals.stream().map(this::parseToDTO).skip(searchDTO.getFrom()).limit(searchDTO.getSize()).toList();
     }
 
     @Override
@@ -92,40 +99,64 @@ public class AnimalServiceImpl implements AnimalService {
     }
 
     @Override
-    public Response.Information update(@NotNull @Min(1) Long animalId, @Valid Request.Update update) throws NotFoundException, ConflictException {
+    public Response.Information update(@NotNull @Min(1) Long animalId, @Valid Request.Update update) throws NotFoundException, BadRequestException {
 
-        var animal = animalDAO.findById(animalId).orElseThrow(() -> new NotFoundException("Not found animal by id"));
-        var account = accountService.getAccountById(update.getChipperId());
-        locationService.findLocationById(update.getChippingLocationId());
+        Animal animal = animalDAO.findById(animalId).orElseThrow(() -> new NotFoundException("Not found animal by id"));
+        Account account = accountService.getAccountById(update.getChipperId()).orElseThrow(() -> new NotFoundException("Account doesn't exists"));
+        LocationPoint locationPoint = locationService.findLocationById(update.getChippingLocationId());
 
         Date deathDateTime = update.getLifeStatus().equals(LifeStatus.DEAD.name()) ? new Date() : null;
 
-        if (animal.getChippingLocationId().equals(update.getChippingLocationId())) {
-            throw new ConflictException("The new chip point coincides with the first visited location point");
+        if (animal.getLifeStatus().equals(LifeStatus.DEAD.name()) && update.getLifeStatus().equals(LifeStatus.ALIVE.name())) {
+            throw new BadRequestException("Attention set alive life status to dead animal");
+        }
+
+        if (animal.getVisitedLocations() != null && animal.getVisitedLocations().size() > 0
+                && animal.getVisitedLocations().get(0).getId().equals(update.getChippingLocationId())) {
+            throw new BadRequestException("The new chip point coincides with the first visited location point");
         }
 
         animalDAO.updateAnimal(update.getWeight(), update.getLength(), update.getHeight(), update.getGender(),
                 update.getLifeStatus(), deathDateTime, account, update.getChippingLocationId(), animalId);
 
+        animal.setWeight(update.getWeight());
+        animal.setHeight(update.getHeight());
+        animal.setLength(update.getLength());
+        animal.setGender(update.getGender());
+        animal.setLifeStatus(update.getLifeStatus());
+        animal.setAccount(account);
+        animal.setChippingLocationId(locationPoint.getId());
+        animal.setDeathDateTime(deathDateTime);
+
         return parseToDTO(animal);
     }
 
     @Override
-    public void deleteById(@NotNull @Min(0) Long animalId) throws NotFoundException, BadRequestException {
-        var animal = animalDAO.findById(animalId).orElseThrow(() -> new NotFoundException("Animal not found"));
+    public void deleteById(@NotNull @Min(1) Long animalId) throws NotFoundException, BadRequestException {
+        Animal animal = animalDAO.findById(animalId).orElseThrow(() -> new NotFoundException("Animal not found"));
 
-        if (hasVisitedLocation(animal)) {
+        if (animal.getVisitedLocations() != null && animal.getVisitedLocations().size() > 0) {
             throw new BadRequestException("Animal has visited locations");
         }
 
+        for (AnimalType animalType : animal.getAnimalTypes()) {
+            if (animalType.getAnimal().remove(animal)) {
+                typesService.save(animalType);
+            }
+        }
+
+        animal.getAnimalTypes().clear();
+
         animalDAO.delete(animal);
+        animalDAO.flush();
     }
 
     @Override
     public Response.Information parseToDTO(Animal animal) {
         return Response.Information.builder()
                 .id(animal.getId())
-                .animalTypes(animal.getAnimalTypes().stream().map(AnimalType::getId).toList())
+                .animalTypes(Optional.ofNullable(animal.getAnimalTypes())
+                        .orElse(new ArrayList<>()).stream().map(AnimalType::getId).toList())
                 .weight(animal.getWeight())
                 .length(animal.getLength())
                 .height(animal.getHeight())
@@ -134,10 +165,11 @@ public class AnimalServiceImpl implements AnimalService {
                 .chippingDateTime(animal.getChippingDateTime())
                 .chipperId(animal.getAccount().getId())
                 .chippingLocationId(animal.getChippingLocationId())
-                .visitedLocation(
+                .visitedLocations(
                         Optional.ofNullable(animal.getVisitedLocations())
-                                .orElse(new LinkedList<>()).stream()
-                                .map(VisitedLocation::getId).toList())
+                                .orElse(new ArrayList<>()).stream()
+                                .map(VisitedLocation::getId)
+                                .toList())
                 .deathDateTime(animal.getDeathDateTime())
                 .build();
     }
@@ -151,12 +183,6 @@ public class AnimalServiceImpl implements AnimalService {
     public void saveAnimal(Animal animal) {
         animalDAO.save(animal);
     }
-
-
-    private boolean hasVisitedLocation(Animal animal) {
-        return animal.getVisitedLocations().size() > 1;
-    }
-
 
     private void hasDuplicate(List<Long> array) throws ConflictException {
         if (array.stream().distinct().count() < array.size()) {
