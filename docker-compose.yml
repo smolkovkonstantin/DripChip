@@ -7,7 +7,7 @@ services:
     volumes:
       - /var/lib/postgresql/data/
     environment:
-      - POSTGRES_DB=ifElseProject
+      - POSTGRES_DB=DripChip
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=Enter5510
 
@@ -21,7 +21,7 @@ services:
       - database
     environment:
       - server.port=8080
-      - spring.datasource.url=jdbc:postgresql://database:5432/IfElseProject
+      - spring.datasource.url=jdbc:postgresql://database:5432/DripChip
       - spring.datasource.username=postgres
       - spring.datasource.password=Enter5510
       - spring.datasource.driver-class-name=org.postgresql.Driver

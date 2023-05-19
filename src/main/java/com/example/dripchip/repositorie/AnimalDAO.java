@@ -2,6 +2,7 @@ package com.example.dripchip.repositorie;
 
 import com.example.dripchip.entites.Account;
 import com.example.dripchip.entites.Animal;
+import com.example.dripchip.entites.LocationPoint;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -30,8 +31,8 @@ public interface AnimalDAO extends JpaRepository<Animal, Long> {
     @Modifying
     @Query("""
             update Animal a set a.weight = ?1, a.length = ?2, a.height = ?3, a.gender = ?4, a.lifeStatus = ?5,
-             a.deathDateTime=?6, a.account = ?7, a.chippingLocationId = ?8
+             a.deathDateTime=?6, a.account = ?7, a.chippingLocation = ?8
             where a.id = ?9""")
     void updateAnimal(Float weight, Float length, Float height, String gender, String lifeStatus, Date deathDateTime,
-                      Account account, Long chippingLocationId, Long id);
+                      Account account, LocationPoint chippingLocation, Long id);
 }

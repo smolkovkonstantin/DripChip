@@ -37,7 +37,7 @@ public class VisitedLocationController {
 
     @DeleteMapping("/{visitedPointId}")
     public void deleteVisitedLocationFromAnimal(
-            @PathVariable Long animalId, @PathVariable Long visitedPointId) throws NotFoundException {
+            @PathVariable Long animalId, @PathVariable Long visitedPointId) throws NotFoundException, BadRequestException {
         visitedLocationsService.deleteVisitedLocationFromAnimal(animalId, visitedPointId);
     }
 

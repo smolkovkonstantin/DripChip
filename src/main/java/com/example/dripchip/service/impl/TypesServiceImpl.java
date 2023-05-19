@@ -72,7 +72,7 @@ public class TypesServiceImpl implements TypesService {
     public void deleteAnimalsTypesById(@Min(1) @NotNull Long typeId) throws NotFoundException, BadRequestException {
         AnimalType animalType = animalsTypesDAO.findById(typeId).orElseThrow(() -> new NotFoundException("Animal type not found"));
 
-        if (animalType.getAnimal() != null && animalType.getAnimal().size() > 0) {
+        if (animalType.getAnimal().size() > 0) {
             throw new BadRequestException("Some animal has this type");
         }
 
@@ -88,7 +88,7 @@ public class TypesServiceImpl implements TypesService {
 
     @Override
     public AnimalType getEntityAnimalsTypesById(Long typeId) throws NotFoundException {
-        return animalsTypesDAO.findById(typeId).orElseThrow(() -> new NotFoundException("Location not found with with id: " + typeId));
+        return animalsTypesDAO.findById(typeId).orElseThrow(() -> new NotFoundException("Animal type not found with with id: " + typeId));
     }
 
     private AnimalsTypesDTO.Response.AnimalsTypes parseToDTO(AnimalType animalTypes) {

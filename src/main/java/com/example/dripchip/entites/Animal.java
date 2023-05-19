@@ -40,7 +40,10 @@ public class Animal {
     private String gender;
     private String lifeStatus;
     private Date chippingDateTime;
-    private Long chippingLocationId;
+
+    @ManyToOne
+    @JoinColumn(name = "chipping_location_id")
+    private LocationPoint chippingLocation;
 
     @Nullable
     private Date deathDateTime;

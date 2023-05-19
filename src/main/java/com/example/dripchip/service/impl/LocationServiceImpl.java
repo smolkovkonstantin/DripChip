@@ -68,7 +68,7 @@ public class LocationServiceImpl implements LocationService {
 
         LocationPoint locationPoint = findLocationById(pointId);
 
-        if (locationPoint.getVisitedLocations().size() > 0) {
+        if (locationPoint.getVisitedLocations().size() > 0 || locationPoint.getAnimals().size() > 0) {
             throw new BadRequestException("Some animal associated with this location");
         }
 

@@ -24,4 +24,8 @@ public class LocationPoint {
     @OneToMany(mappedBy = "locationPoint", fetch=FetchType.LAZY)
     @ToString.Exclude
     private List<VisitedLocation> visitedLocations;
+
+    @OneToMany(mappedBy = "chippingLocation", fetch=FetchType.LAZY)
+    @ToString.Exclude
+    private List<Animal> animals;
 }

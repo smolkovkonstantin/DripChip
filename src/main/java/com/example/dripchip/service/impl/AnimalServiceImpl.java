@@ -14,7 +14,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -58,7 +57,7 @@ public class AnimalServiceImpl implements AnimalService {
                 .lifeStatus(LifeStatus.ALIVE.name())
                 .chippingDateTime(new Date())
                 .deathDateTime(null)
-                .chippingLocationId(locationPoint.getId())
+                .chippingLocation(locationPoint)
                 .build();
 
         saveAnimal(animal);
@@ -111,13 +110,18 @@ public class AnimalServiceImpl implements AnimalService {
             throw new BadRequestException("Attention set alive life status to dead animal");
         }
 
-        if (animal.getVisitedLocations() != null && animal.getVisitedLocations().size() > 0
-                && animal.getVisitedLocations().get(0).getId().equals(update.getChippingLocationId())) {
-            throw new BadRequestException("The new chip point coincides with the first visited location point");
+        if (animal.getVisitedLocations().size() > 0) {
+            if (animal.getVisitedLocations().get(0).getLocationPoint().getId().equals(update.getChippingLocationId())) {
+                throw new BadRequestException("The new chip point coincides with the first visited location point");
+            }
+
+            if (animal.getVisitedLocations().size() == 1 && locationPoint.equals(animal.getChippingLocation())) {
+                throw new BadRequestException("");
+            }
         }
 
         animalDAO.updateAnimal(update.getWeight(), update.getLength(), update.getHeight(), update.getGender(),
-                update.getLifeStatus(), deathDateTime, account, update.getChippingLocationId(), animalId);
+                update.getLifeStatus(), deathDateTime, account, locationPoint, animalId);
 
         animal.setWeight(update.getWeight());
         animal.setHeight(update.getHeight());
@@ -125,7 +129,7 @@ public class AnimalServiceImpl implements AnimalService {
         animal.setGender(update.getGender());
         animal.setLifeStatus(update.getLifeStatus());
         animal.setAccount(account);
-        animal.setChippingLocationId(locationPoint.getId());
+        animal.setChippingLocation(locationPoint);
         animal.setDeathDateTime(deathDateTime);
 
         return parseToDTO(animal);
@@ -135,7 +139,7 @@ public class AnimalServiceImpl implements AnimalService {
     public void deleteById(@NotNull @Min(1) Long animalId) throws NotFoundException, BadRequestException {
         Animal animal = animalDAO.findById(animalId).orElseThrow(() -> new NotFoundException("Animal not found"));
 
-        if (animal.getVisitedLocations() != null && animal.getVisitedLocations().size() > 0) {
+        if (animal.getVisitedLocations().size() > 0) {
             throw new BadRequestException("Animal has visited locations");
         }
 
@@ -146,6 +150,8 @@ public class AnimalServiceImpl implements AnimalService {
         }
 
         animal.getAnimalTypes().clear();
+        animalDAO.save(animal);
+        animalDAO.flush();
 
         animalDAO.delete(animal);
         animalDAO.flush();
@@ -164,7 +170,7 @@ public class AnimalServiceImpl implements AnimalService {
                 .lifeStatus(animal.getLifeStatus())
                 .chippingDateTime(animal.getChippingDateTime())
                 .chipperId(animal.getAccount().getId())
-                .chippingLocationId(animal.getChippingLocationId())
+                .chippingLocationId(animal.getChippingLocation().getId())
                 .visitedLocations(
                         Optional.ofNullable(animal.getVisitedLocations())
                                 .orElse(new ArrayList<>()).stream()
