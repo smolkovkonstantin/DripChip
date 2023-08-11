@@ -22,11 +22,12 @@ public class Animal {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @ManyToMany(cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "animal")
     @ToString.Exclude
-    private List<AnimalType> animalTypes;
+    private List<AnimalTypeAnimal> animalTypeAnimals;
 
-    @ManyToMany(cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "animal")
+    @OrderBy("id ASC")
     @ToString.Exclude
     private List<VisitedLocation> visitedLocations;
 

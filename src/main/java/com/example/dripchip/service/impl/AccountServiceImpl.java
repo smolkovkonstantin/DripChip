@@ -14,7 +14,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -110,7 +109,7 @@ public class AccountServiceImpl implements AccountService {
             throw new ForbiddenException("User can't update account another user or account hasn't found");
         }
 
-        if (account.getAnimals() == null || account.getAnimals().size() > 0) {
+        if (account.getAnimals() == null || !account.getAnimals().isEmpty()) {
             throw new BadRequestException("User has information about animal in the account");
         }
 

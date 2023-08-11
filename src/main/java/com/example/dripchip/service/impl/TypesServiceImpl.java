@@ -1,10 +1,13 @@
 package com.example.dripchip.service.impl;
 
 import com.example.dripchip.dto.AnimalsTypesDTO;
+import com.example.dripchip.entites.Animal;
 import com.example.dripchip.entites.AnimalType;
 import com.example.dripchip.exception.BadRequestException;
 import com.example.dripchip.exception.ConflictException;
 import com.example.dripchip.exception.NotFoundException;
+import com.example.dripchip.repositorie.AnimalDAO;
+import com.example.dripchip.repositorie.AnimalTypeAnimalDAO;
 import com.example.dripchip.repositorie.AnimalsTypesDAO;
 import com.example.dripchip.service.TypesService;
 import jakarta.validation.Valid;
@@ -22,6 +25,8 @@ import java.util.Optional;
 public class TypesServiceImpl implements TypesService {
 
     private final AnimalsTypesDAO animalsTypesDAO;
+    private final AnimalDAO animalDAO;
+    private final AnimalTypeAnimalDAO animalTypeAnimalDAO;
 
     @Override
     public AnimalsTypesDTO.Response.AnimalsTypes addAnimalsTypes(@Valid AnimalsTypesDTO.Request.AnimalsTypes animalsTypesDTO) throws ConflictException {
@@ -71,13 +76,15 @@ public class TypesServiceImpl implements TypesService {
     @Override
     public void deleteAnimalsTypesById(@Min(1) @NotNull Long typeId) throws NotFoundException, BadRequestException {
         AnimalType animalType = animalsTypesDAO.findById(typeId).orElseThrow(() -> new NotFoundException("Animal type not found"));
+        var animals = animalDAO.findByAnimalTypeAnimals_AnimalType_Id(animalType.getId());
 
-        if (animalType.getAnimal().size() > 0) {
-            throw new BadRequestException("Some animal has this type");
+        if (!animals.isEmpty()) {
+            throw new BadRequestException("Animal with id " + animals.stream().map(Animal::getId).toList() + " has type with id: " + typeId);
         }
 
+        animalTypeAnimalDAO.deleteAll(animalType.getAnimalTypeAnimals());
+
         animalsTypesDAO.deleteById(typeId);
-        animalsTypesDAO.flush();
     }
 
     @Override

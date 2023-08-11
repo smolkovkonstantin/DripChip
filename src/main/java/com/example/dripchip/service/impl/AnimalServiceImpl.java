@@ -8,6 +8,7 @@ import com.example.dripchip.exception.BadRequestException;
 import com.example.dripchip.exception.ConflictException;
 import com.example.dripchip.exception.NotFoundException;
 import com.example.dripchip.repositorie.AnimalDAO;
+import com.example.dripchip.repositorie.AnimalTypeAnimalDAO;
 import com.example.dripchip.service.*;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import jakarta.validation.Valid;
@@ -30,6 +31,7 @@ public class AnimalServiceImpl implements AnimalService {
     private final TypesService typesService;
     private final AccountService accountService;
     private final LocationService locationService;
+    private final AnimalTypeAnimalDAO animalTypeAnimalDAO;
 
     @Override
     public Response.Information registration(@Valid Request.Registration registration) throws ConflictException, NotFoundException {
@@ -45,10 +47,10 @@ public class AnimalServiceImpl implements AnimalService {
                 throw new RuntimeException(e);
             }
         });
+
         hasDuplicate(registration.getAnimalTypes());
 
         Animal animal = Animal.builder()
-                .animalTypes(animalTypes)
                 .account(account)
                 .weight(registration.getWeight())
                 .length(registration.getLength())
@@ -62,10 +64,18 @@ public class AnimalServiceImpl implements AnimalService {
 
         saveAnimal(animal);
 
-        animalTypes.forEach(animalType -> {
-            animalType.getAnimal().add(animal);
-            typesService.save(animalType);
-        });
+        List<AnimalTypeAnimal> animalTypeAnimals = new ArrayList<>();
+
+        animalTypes.forEach(animalType -> animalTypeAnimals.add(AnimalTypeAnimal
+                .builder()
+                .animal(animal)
+                .animalType(animalType)
+                .build())
+        );
+
+        animalTypeAnimalDAO.saveAll(animalTypeAnimals);
+
+        animal.setAnimalTypeAnimals(animalTypeAnimals);
 
         return parseToDTO(animal);
     }
@@ -110,7 +120,7 @@ public class AnimalServiceImpl implements AnimalService {
             throw new BadRequestException("Attention set alive life status to dead animal");
         }
 
-        if (animal.getVisitedLocations().size() > 0) {
+        if (!animal.getVisitedLocations().isEmpty()) {
             if (animal.getVisitedLocations().get(0).getLocationPoint().getId().equals(update.getChippingLocationId())) {
                 throw new BadRequestException("The new chip point coincides with the first visited location point");
             }
@@ -132,6 +142,8 @@ public class AnimalServiceImpl implements AnimalService {
         animal.setChippingLocation(locationPoint);
         animal.setDeathDateTime(deathDateTime);
 
+        animalDAO.save(animal);
+
         return parseToDTO(animal);
     }
 
@@ -139,30 +151,21 @@ public class AnimalServiceImpl implements AnimalService {
     public void deleteById(@NotNull @Min(1) Long animalId) throws NotFoundException, BadRequestException {
         Animal animal = animalDAO.findById(animalId).orElseThrow(() -> new NotFoundException("Animal not found"));
 
-        if (animal.getVisitedLocations().size() > 0) {
+        if (!animal.getVisitedLocations().isEmpty()) {
             throw new BadRequestException("Animal has visited locations");
         }
 
-        for (AnimalType animalType : animal.getAnimalTypes()) {
-            if (animalType.getAnimal().remove(animal)) {
-                typesService.save(animalType);
-            }
-        }
-
-        animal.getAnimalTypes().clear();
-        animalDAO.save(animal);
-        animalDAO.flush();
+        animalTypeAnimalDAO.deleteAll(animalTypeAnimalDAO.findByAnimal_Id(animalId));
 
         animalDAO.delete(animal);
-        animalDAO.flush();
     }
 
     @Override
     public Response.Information parseToDTO(Animal animal) {
         return Response.Information.builder()
                 .id(animal.getId())
-                .animalTypes(Optional.ofNullable(animal.getAnimalTypes())
-                        .orElse(new ArrayList<>()).stream().map(AnimalType::getId).toList())
+                .animalTypes(Optional.ofNullable(animal.getAnimalTypeAnimals())
+                        .orElse(new ArrayList<>()).stream().map(animalTypeAnimal -> animalTypeAnimal.getAnimalType().getId()).toList())
                 .weight(animal.getWeight())
                 .length(animal.getLength())
                 .height(animal.getHeight())

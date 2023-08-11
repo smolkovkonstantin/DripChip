@@ -1,10 +1,8 @@
 package com.example.dripchip.entites;
 
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
-import net.minidev.json.annotate.JsonIgnore;
 
 import java.util.List;
 
@@ -22,7 +20,7 @@ public class AnimalType {
     @Column(unique = true)
     private String type;
 
-    @ManyToMany(cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "animalType")
     @ToString.Exclude
-    private List<Animal> animal;
+    private List<AnimalTypeAnimal> animalTypeAnimals;
 }

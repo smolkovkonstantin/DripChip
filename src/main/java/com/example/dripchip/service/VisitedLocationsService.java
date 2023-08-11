@@ -1,8 +1,6 @@
 package com.example.dripchip.service;
 
 import com.example.dripchip.dto.VisitedLocationDTO;
-import com.example.dripchip.entites.Animal;
-import com.example.dripchip.entites.VisitedLocation;
 import com.example.dripchip.exception.BadRequestException;
 import com.example.dripchip.exception.NotFoundException;
 import jakarta.validation.Valid;
@@ -20,6 +18,4 @@ public interface VisitedLocationsService {
     void deleteVisitedLocationFromAnimal(@Min(1) @NotNull Long animalId, @Min(1) @NotNull Long pointId) throws NotFoundException, BadRequestException;
 
     List<VisitedLocationDTO.Response.VisitedLocationInfo> search(Long animalId, VisitedLocationDTO.Request.Search searchDTO) throws NotFoundException, ParseException, BadRequestException;
-
-    List<VisitedLocation> findAllByAnimal(Animal animal);
 }
