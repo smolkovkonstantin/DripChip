@@ -13,4 +13,4 @@
 
 Побочно я познакомился с Spring Session, JWT token, необычным подходом к созданию DTO
 
-Результаты тестирования:![image](https://github.com/smolkovkonstantin/DripChip/assets/90694714/a5864279-d22a-4cc3-bb57-48612fbff04d)
+Результаты тестирования:![image](https://github.com/smolkovkonstantin/DripChip/assets/90694714/0a256afa-9871-4256-b10c-934639c0bada)
