@@ -6,7 +6,6 @@ import com.example.dripchip.dto.AnimalsTypesDTO.Response;
 import com.example.dripchip.exception.BadRequestException;
 import com.example.dripchip.exception.ConflictException;
 import com.example.dripchip.exception.NotFoundException;
-import com.example.dripchip.service.AnimalService;
 import com.example.dripchip.service.TypesService;
 import com.example.dripchip.service.AnimalTypeService;
 import jakarta.validation.Valid;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 public class AnimalsTypesController {
     private final TypesService typesService;
     private final AnimalTypeService animalTypeService;
-    private final AnimalService animalService;
 
     @PostMapping("/types")
     public ResponseEntity<Response.AnimalsTypes> addAnimalsTypes(@RequestBody Request.AnimalsTypes animalsTypes) throws ConflictException {

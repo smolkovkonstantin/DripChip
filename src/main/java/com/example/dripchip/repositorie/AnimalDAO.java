@@ -3,19 +3,16 @@ package com.example.dripchip.repositorie;
 import com.example.dripchip.entites.Account;
 import com.example.dripchip.entites.Animal;
 import com.example.dripchip.entites.LocationPoint;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 public interface AnimalDAO extends JpaRepository<Animal, Long> {
-    Optional<List<Animal>> findByChippingLocationId(Long chippingLocationId);
+    List<Animal> findByAnimalTypeAnimals_AnimalType_Id(Long id);
     @Query(value =
             "select * from Animal JOIN Account on Animal.account=Account.id_account " +
                     "WHERE (id_account = ?1 or ?1 is null) and (chipping_location_id = ?2 or ?2 is null)" +

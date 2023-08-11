@@ -41,30 +41,32 @@ public class VisitedLocationsServiceImpl implements VisitedLocationsService {
             @Min(1) @NotNull Long pointId) throws NotFoundException, BadRequestException {
         Animal animal = animalService.findById(animalId);
 
+        var locationPoint = locationService.findLocationById(pointId);
+        var visitedLocations = animal.getVisitedLocations();
+
         if (animal.getLifeStatus().equals(LifeStatus.DEAD.name()))
             throw new BadRequestException("Animal has already dead");
 
-        if (animal.getChippingLocation().getId().equals(pointId) && animal.getVisitedLocations().size() == 0)
+        if (animal.getChippingLocation().getId().equals(pointId) && visitedLocations.isEmpty())
             throw new BadRequestException("An attempt to add first visit location point equal to the chipping point");
 
+        int lastIndex = visitedLocations.size() - 1;
 
-        VisitedLocation visitedLocation = VisitedLocation.builder()
-                .locationPoint(locationService.findLocationById(pointId))
-                .dateTimeOfVisitLocationPoint(new Date())
-                .build();
-
-        int lastIndex = animal.getVisitedLocations().size() - 1;
-
-        if (animal.getVisitedLocations().size() != 0
-                && animal.getVisitedLocations().get(lastIndex).getLocationPoint().getId().equals(pointId)) {
+        if (!visitedLocations.isEmpty()
+                && visitedLocations.get(lastIndex).getLocationPoint().equals(locationPoint)) {
             throw new BadRequestException("An attempt to add a visit location where an animal is already located");
         }
+
+        VisitedLocation visitedLocation = VisitedLocation.builder()
+                .animal(animal)
+                .locationPoint(locationPoint)
+                .dateTimeOfVisitLocationPoint(new Date())
+                .build();
 
         visitedLocationsDAO.save(visitedLocation);
 
         animal.getVisitedLocations().add(visitedLocation);
         animalService.saveAnimal(animal);
-
 
         return parseToDTO(visitedLocation);
     }
@@ -77,7 +79,7 @@ public class VisitedLocationsServiceImpl implements VisitedLocationsService {
         VisitedLocation visitedLocation = getVisitedLocationById(update.getVisitedLocationPointId());
         LocationPoint locationPoint = locationService.findLocationById(update.getLocationPointId());
 
-        if (visitedLocations.size() == 0 || !visitedLocations.contains(visitedLocation)) {
+        if (visitedLocations.isEmpty() || !visitedLocations.contains(visitedLocation)) {
             throw new NotFoundException("Animal didn't visit this location");
         }
 
@@ -131,15 +133,14 @@ public class VisitedLocationsServiceImpl implements VisitedLocationsService {
             if (index == 0 && animal.getVisitedLocations().size() > 1
                     && animal.getVisitedLocations().get(index + 1).getLocationPoint().getId()
                     .equals(animal.getChippingLocation().getId())) {
+                var visitedLocationEqualsChippingLocation = animal.getVisitedLocations().get(index + 1);
                 animal.getVisitedLocations().remove(index + 1);
                 animalService.saveAnimal(animal);
-                visitedLocation.getAnimal().remove(animal);
-                visitedLocationsDAO.delete(visitedLocation);
+                visitedLocationsDAO.delete(visitedLocationEqualsChippingLocation);
             }
 
             animal.getVisitedLocations().remove(index);
             animalService.saveAnimal(animal);
-            visitedLocation.getAnimal().remove(animal);
             visitedLocationsDAO.delete(visitedLocation);
         } else {
             throw new NotFoundException("Animal hasn't visited this location");
@@ -159,11 +160,6 @@ public class VisitedLocationsServiceImpl implements VisitedLocationsService {
 
         return searchByParameters(searchDTO.getStartDateTime(), searchDTO.getEndDateTime(),
                 searchDTO.getFrom(), searchDTO.getSize(), visitedLocations);
-    }
-
-    @Override
-    public List<VisitedLocation> findAllByAnimal(Animal animal) {
-        return visitedLocationsDAO.findByAnimalId(animal.getId());
     }
 
     private Response.VisitedLocationInfo parseToDTO(VisitedLocation visitedLocation) {

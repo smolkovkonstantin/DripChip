@@ -22,6 +22,7 @@ public class LocationPoint {
     private Double longitude;
 
     @OneToMany(mappedBy = "locationPoint", fetch=FetchType.LAZY)
+    @OrderBy("id ASC")
     @ToString.Exclude
     private List<VisitedLocation> visitedLocations;
 
